@@ -91,7 +91,7 @@ const server = http.createServer(app);
 attachSignaling(server, allowedOrigins);
 
 server.listen(Port, () => {
-  console.log(`***Server is Running***`);
+  console.log(`***Server is Running*** (port ${Port})`);
 });
 
 mongoose.connect(Database);
