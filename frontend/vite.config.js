@@ -45,5 +45,9 @@ export default defineConfig(({ mode }) => {
   const apiUrl = env.VITE_API_URL || 'http://localhost:1989'
   return {
     plugins: [react(), tailwindcss(), contentSecurityPolicy(apiUrl)],
+    // Sign-in calls go to this site's /auth (see src/auth/AuthProvider.jsx);
+    // pass them on to the backend, as vercel.json does in production
+    server: { proxy: { '/auth': apiUrl } },
+    preview: { proxy: { '/auth': apiUrl } },
   }
 })

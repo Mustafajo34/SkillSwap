@@ -1,0 +1,27 @@
+# Railway deploy settings for the SkillSwap API (Express + Socket.IO).
+# In the Railway service's Settings: Root Directory = /backend and
+# Config File Path = /backend/railway.toml (Railway doesn't look for it
+# inside the root directory on its own).
+# Secrets (MONGODB, MYACCESSKEY, MYREFRESHKEY, CLIENT_ORIGIN, TURN_*) go in
+# the service's Variables tab — never in this file. Railway sets PORT itself.
+
+[build]
+builder = "NIXPACKS"
+# Only redeploy when the backend changes (not on frontend-only commits)
+watchPatterns = ["/backend/**"]
+
+[deploy]
+startCommand = "npm start"
+# Railway waits for this to answer 200 before switching traffic over,
+# so a broken deploy never replaces the running one
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+# Restart the server if it crashes (up to 10 times in a row)
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+# One instance: live video rooms are kept in this server's memory, so a
+# second copy would split people in the same session apart
+numReplicas = 1
+
+[deploy.variables]
+NODE_ENV = "production"

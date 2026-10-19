@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authContext } from "./useAuth";
-import { API_BASE } from "../utils/api";
 import { IdleWarning, SignedOutNotice } from "./SessionNotices";
 
 // create error class extend
@@ -30,17 +29,19 @@ class HttpError extends Error {
   }
 }
 
-// Backend endpoints — all in one place. Matches backend/server.js (PORT=1989,
-// router mounted at /auth) and backend/routes/userRoute.js. Set VITE_API_URL
-// when building for production.
-// API_BASE lives in utils/api.js so the Live Sessions socket can share it.
+// Sign-in endpoints (backend/routes/userRoute.js). These go to this site's
+// own /auth, which is passed on to the backend — by Vercel in production
+// (vercel.json) and by Vite in development (vite.config.js). That keeps the
+// sign-in cookie first-party, so browsers that block third-party cookies
+// (Safari) don't sign people out on refresh. Everything else, including
+// /auth/me, calls the backend directly (API_BASE in utils/api.js).
 const API = {
-  signUp: `${API_BASE}/auth/signup`,
-  signIn: `${API_BASE}/auth/signin`,
-  logOut: `${API_BASE}/auth/logout`,
-  refresh: `${API_BASE}/auth/refresh`,
+  signUp: "/auth/signup",
+  signIn: "/auth/signin",
+  logOut: "/auth/logout",
+  refresh: "/auth/refresh",
   // GET ?username=<name>  →  { available: boolean }
-  usernameAvailable: `${API_BASE}/auth/username-available`,
+  usernameAvailable: "/auth/username-available",
 };
 
 // Result for a request cancelled through its AbortSignal. Callers should

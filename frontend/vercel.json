@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://skillswap-production-5718.up.railway.app/auth/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

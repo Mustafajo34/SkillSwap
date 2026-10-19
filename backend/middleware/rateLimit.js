@@ -1,4 +1,15 @@
-const { rateLimit } = require("express-rate-limit");
+const { isIP } = require("net");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+
+// The visitor's IP. Sign-in routes reach us through the frontend's Vercel
+// site (frontend/vercel.json), so there req.ip is Vercel's server; Vercel
+// passes the visitor's address along in x-vercel-forwarded-for. Anyone can
+// fake that header on a direct request, so sign-in is also limited per
+// account (signinAccountLimiter) — that limit can't be dodged this way.
+function clientIp(req) {
+  const forwarded = req.get("x-vercel-forwarded-for")?.split(",")[0].trim();
+  return forwarded && isIP(forwarded) ? forwarded : req.ip;
+}
 
 // Limits are per IP address. Responses are JSON with a `message`, which the
 // frontend shows to the user.
@@ -8,6 +19,7 @@ const limiter = (windowMs, limit, message, options = {}) =>
     limit,
     standardHeaders: "draft-8",
     legacyHeaders: false,
+    keyGenerator: (req) => ipKeyGenerator(clientIp(req)),
     handler: (req, res, next, opts) =>
       res.status(opts.statusCode).json({ message }),
     ...options,
@@ -19,6 +31,22 @@ const signinLimiter = limiter(
   10,
   "Too many sign-in attempts. Please try again in 15 minutes.",
   { skipSuccessfulRequests: true },
+);
+
+// The same, per account, whatever IP the guesses come from
+const signinAccountLimiter = limiter(
+  15 * 60 * 1000,
+  10,
+  "Too many sign-in attempts. Please try again in 15 minutes.",
+  {
+    skipSuccessfulRequests: true,
+    keyGenerator: (req) => {
+      const name = req.body?.userName;
+      return typeof name === "string" && name.trim()
+        ? `user:${name.trim().toLowerCase().slice(0, 64)}`
+        : ipKeyGenerator(clientIp(req));
+    },
+  },
 );
 
 const signupLimiter = limiter(
@@ -105,6 +133,7 @@ module.exports = {
   passwordChangeLimiter,
   sessionLimiter,
   signinLimiter,
+  signinAccountLimiter,
   signupLimiter,
   usernameCheckLimiter,
   friendRequestLimiter,

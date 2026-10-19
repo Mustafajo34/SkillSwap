@@ -10,6 +10,10 @@ const app = express();
 
 const { rejectInjection } = require("./middleware/security");
 
+// In production, requests arrive through Railway's proxy: use the visitor's
+// real IP (from X-Forwarded-For) so rate limits are per person, not shared
+if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
+
 app.use(helmet());
 // Bodies are small JSON; anything larger is refused before a route sees it
 app.use(express.json({ limit: "100kb" }));
@@ -26,6 +30,11 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim());
 app.use(cors({ credentials: true, origin: allowedOrigins }));
+
+// Railway's health check (railway.toml): up once the database is connected
+app.get("/health", (req, res) => {
+  res.sendStatus(mongoose.connection.readyState === 1 ? 200 : 503);
+});
 
 const userRoutes = require("./routes/userRoute");
 app.use("/auth", userRoutes);

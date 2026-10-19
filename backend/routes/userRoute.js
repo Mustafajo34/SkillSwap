@@ -8,6 +8,7 @@ const { requireAuth } = require("../middleware/requireAuth");
 const { broadcastProfile, broadcastPhoto } = require("../services/profileEvents");
 const {
   signinLimiter,
+  signinAccountLimiter,
   signupLimiter,
   usernameCheckLimiter,
   profileUpdateLimiter,
@@ -32,10 +33,21 @@ const ABSOLUTE_SESSION_S = 8 * 60 * 60;
 const REUSE_GRACE_MS = 30 * 1000;
 const SESSION_OVER = "Your session has ended. Please sign in again.";
 
+// SameSite: "none" while the frontend and API are on different sites
+// (e.g. vercel.app + railway.app). Once both share your own domain
+// (example.com + api.example.com), set COOKIE_SAMESITE=strict so browsers
+// that block third-party cookies (Safari) keep people signed in.
+const SAME_SITE_VALUES = ["strict", "lax", "none"];
+const sameSite = SAME_SITE_VALUES.includes(process.env.COOKIE_SAMESITE)
+  ? process.env.COOKIE_SAMESITE
+  : process.env.NODE_ENV === "production"
+    ? "none"
+    : "strict";
 const refreshCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  // "none" is only accepted on secure (HTTPS) cookies
+  secure: process.env.NODE_ENV === "production" || sameSite === "none",
+  sameSite,
   path: "/auth",
 };
 
@@ -164,7 +176,7 @@ router.post("/signup", signupLimiter, validate("signup"), async (req, res) => {
   }
 });
 
-router.post("/signin", signinLimiter, validate("signin"), async (req, res) => {
+router.post("/signin", signinLimiter, signinAccountLimiter, validate("signin"), async (req, res) => {
   try {
     const { userName, password } = req.validated;
     // Usernames are case-insensitive: "Chris" signs in as "chris"
