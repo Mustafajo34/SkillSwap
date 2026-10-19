@@ -295,28 +295,39 @@ function SelfView({ stream, status, error, mirror, mic, me, className = "", onEn
 }
 
 // Someone else in the session, received peer-to-peer.
+// The picture plays on a muted <video> and the sound on its own <audio>:
+// browsers may refuse to autoplay anything with sound, and a refused <video>
+// stays black. Muted video always plays, so only the sound can ever need a tap.
 function PeerTile({ peer, presenting = false, sinkId = "", onEnlarge }) {
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
   // Browsers can block audio autoplay until the user interacts with the page
   const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    el.srcObject = peer.stream;
-    el.play()
-      .then(() => setBlocked(false))
-      .catch((err) => err?.name === "NotAllowedError" && setBlocked(true));
+    const video = videoRef.current;
+    if (video) {
+      video.srcObject = peer.stream;
+      video.play().catch(() => {});
+    }
+    const audio = audioRef.current;
+    if (audio) {
+      audio.srcObject = peer.stream;
+      audio
+        .play()
+        .then(() => setBlocked(false))
+        .catch((err) => err?.name === "NotAllowedError" && setBlocked(true));
+    }
   }, [peer.stream]);
 
   // Play through the speaker picked in Settings (where the browser can)
   useEffect(() => {
-    const el = videoRef.current;
+    const el = audioRef.current;
     if (el?.setSinkId && el.sinkId !== sinkId) el.setSinkId(sinkId).catch(() => {});
   }, [sinkId, peer.stream]);
 
   const unblock = () =>
-    videoRef.current
+    audioRef.current
       ?.play()
       .then(() => setBlocked(false))
       .catch(() => {});
@@ -328,7 +339,8 @@ function PeerTile({ peer, presenting = false, sinkId = "", onEnlarge }) {
       className={`peer-tile ${peer.camera || presenting ? "" : "cam-off"} ${presenting ? "is-presenting" : ""}`}
       onDoubleClick={onEnlarge && ((e) => !e.target.closest("button") && onEnlarge())}
     >
-      <video ref={videoRef} autoPlay playsInline />
+      <video ref={videoRef} autoPlay playsInline muted />
+      <audio ref={audioRef} autoPlay />
       {!peer.camera && !presenting && (
         <div className="peer-off">
           <UserAvatar

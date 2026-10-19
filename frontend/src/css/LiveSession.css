@@ -1136,7 +1136,7 @@ button.rec.is-live:hover:not(:disabled) {
   height: 100%;
   object-fit: cover;
 }
-/* Hidden, not removed, so their audio keeps playing */
+/* Hidden behind their photo while their camera is off */
 .peer-tile.cam-off > video {
   opacity: 0;
 }
