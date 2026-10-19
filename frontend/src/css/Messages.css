@@ -1,0 +1,1157 @@
+/* Connects Feed tab (Messages) — rendered inside the Dashboard's main
+   area. Tailwind and fonts load once in index.css. Every class is prefixed
+   mg- and scoped under .messages-board so nothing leaks into (or in from)
+   other pages; colours come from the dashboard's theme tokens so the page
+   follows its light/dark toggle. */
+
+.messages-board {
+  --mg-line: var(--border);
+  --mg-paper: var(--card);
+  --mg-soft: color-mix(in srgb, var(--muted) 55%, var(--card));
+  --mg-gold-text: color-mix(in srgb, var(--primary) 75%, var(--foreground));
+
+  position: relative;
+  isolation: isolate; /* keeps the background layer below the board */
+  min-height: 100%;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at 80% 0, color-mix(in srgb, var(--primary) 10%, transparent), transparent 28rem),
+    var(--background);
+  font-family: "Manrope", sans-serif;
+}
+
+/* Background illustration (Messages tab only): SkillSwap motifs — chat
+   bubbles, swap arrows, skills — drawn in the theme's gold at low opacity,
+   so it shows faintly in both light and dark mode. The SVG is used as a
+   mask, so its colour always comes from the theme. */
+.messages-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--primary);
+  opacity: 0.09;
+  -webkit-mask: url("../assets/messages-pattern.svg") repeat 0 0 / 320px 320px;
+  mask: url("../assets/messages-pattern.svg") repeat 0 0 / 320px 320px;
+}
+.dashboard.light .messages-board::before {
+  opacity: 0.13;
+}
+.messages-board button,
+.messages-board input,
+.messages-board select,
+.messages-board textarea {
+  font: inherit;
+  color: inherit;
+}
+.messages-board button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.messages-board button:disabled {
+  cursor: not-allowed;
+}
+.messages-board button:focus-visible,
+.messages-board select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.mg-layout {
+  width: min(780px, 100%);
+  margin: 0 auto;
+  padding: 44px 24px 90px;
+}
+
+/* Heading + search */
+.mg-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+.mg-eyebrow {
+  color: var(--mg-gold-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+.mg-heading h1 {
+  margin: 7px 0 4px;
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(36px, 5vw, 52px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.mg-heading p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+.mg-search {
+  display: flex;
+  flex-shrink: 0;
+  width: min(260px, 40%);
+  height: 40px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--mg-line);
+  border-radius: 10px;
+  color: var(--muted-foreground);
+  background: var(--mg-paper);
+  transition: border-color 160ms ease;
+}
+.mg-search:focus-within {
+  border-color: var(--primary);
+}
+.mg-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--foreground);
+  background: transparent;
+  font-size: 13px;
+}
+.mg-search input::placeholder {
+  color: var(--muted-foreground);
+}
+.mg-search-error {
+  margin: -14px 0 18px;
+  text-align: right;
+}
+
+/* Avatars (UserAvatar) */
+.mg-avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: #111;
+  font-size: 13px;
+  font-weight: 800;
+}
+.mg-avatar-small {
+  width: 29px;
+  height: 29px;
+  font-size: 10px;
+}
+
+/* Composer */
+.mg-composer {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 36px;
+  padding: 22px;
+  border: 1px solid var(--mg-line);
+  border-top: 3px solid var(--primary);
+  border-radius: 4px;
+  background: var(--mg-paper);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+.mg-composer-body {
+  min-width: 0;
+  flex: 1;
+}
+.mg-composer textarea {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.mg-composer textarea::placeholder {
+  color: var(--muted-foreground);
+}
+.mg-composer-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--mg-line);
+}
+.mg-tools {
+  display: flex;
+  gap: 2px;
+}
+.mg-tools button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.messages-board .mg-tools button {
+  color: var(--muted-foreground);
+}
+.messages-board .mg-tools button:hover:not(:disabled) {
+  color: var(--foreground);
+  background: var(--mg-soft);
+}
+.mg-tools button:disabled {
+  opacity: 0.4;
+}
+.mg-emoji-wrap {
+  position: relative;
+}
+.mg-emoji-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--mg-line);
+  border-radius: 12px;
+  background: var(--mg-paper);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+.mg-emoji-menu button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 17px;
+}
+.mg-emoji-menu button:hover {
+  background: var(--mg-soft);
+}
+.mg-count {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.mg-count.full {
+  color: #e5484d;
+  font-weight: 700;
+}
+.mg-post {
+  height: 36px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--foreground);
+  font-size: 12px;
+  font-weight: 800;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+.messages-board .mg-post {
+  color: var(--background);
+}
+.mg-post:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.mg-post:disabled {
+  opacity: 0.35;
+}
+
+.mg-error {
+  margin: 8px 0 0;
+  color: #e5484d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Stream */
+.mg-stream-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--foreground);
+}
+.mg-stream-heading h2 {
+  margin: 0;
+  font-family: "DM Serif Display", serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+.mg-stream-heading label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.mg-stream-heading label span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.mg-stream-heading select {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mg-stream-heading select option {
+  color: var(--foreground);
+  background: var(--card);
+}
+.mg-stream {
+  display: grid;
+  gap: 12px;
+}
+.mg-empty {
+  padding: 40px 20px;
+  border: 1px dashed var(--mg-line);
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+.mg-empty strong {
+  color: var(--foreground);
+}
+.mg-empty p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+/* A post */
+.mg-card {
+  border: 1px solid var(--mg-line);
+  border-radius: 4px;
+  background: var(--mg-paper);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.mg-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.06);
+}
+.mg-card-main {
+  display: flex;
+  gap: 14px;
+  padding: 22px 24px;
+}
+.mg-card-content {
+  min-width: 0;
+  flex: 1;
+}
+.mg-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mg-topline > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 7px;
+}
+.mg-topline strong {
+  font-size: 13px;
+}
+.mg-topline span {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mg-icon-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin: -6px -6px 0 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.messages-board .mg-icon-button {
+  color: var(--muted-foreground);
+}
+.mg-icon-button:hover {
+  background: var(--mg-soft);
+}
+.mg-menu-wrap {
+  position: relative;
+}
+.mg-menu {
+  position: absolute;
+  top: 28px;
+  right: -6px;
+  z-index: 5;
+  display: grid;
+  min-width: 160px;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--mg-line);
+  border-radius: 12px;
+  background: var(--mg-paper);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+}
+.mg-menu > span {
+  padding: 6px 8px 4px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 700;
+}
+.mg-menu button {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+.mg-menu button:hover {
+  background: var(--mg-soft);
+}
+.messages-board .mg-menu .mg-danger {
+  color: #e5484d;
+}
+.mg-body {
+  margin: 10px 0 16px;
+  color: var(--secondary-foreground);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.mg-actions {
+  display: flex;
+  gap: 5px;
+}
+.mg-action {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+}
+.messages-board .mg-action {
+  color: var(--muted-foreground);
+}
+.messages-board .mg-action:hover {
+  color: var(--foreground);
+  background: var(--mg-soft);
+}
+.messages-board .mg-action.liked {
+  color: var(--primary);
+}
+
+/* Replies */
+.mg-replies {
+  display: grid;
+  gap: 15px;
+  margin-top: 16px;
+  padding: 16px 0 0 16px;
+  border-top: 1px solid var(--mg-line);
+  border-left: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+}
+.mg-reply {
+  display: flex;
+  gap: 10px;
+}
+.mg-reply-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.mg-reply-meta strong {
+  font-size: 12px;
+}
+.mg-reply-meta span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.mg-reply p {
+  margin: 3px 0 0;
+  color: var(--secondary-foreground);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.mg-inline-reply {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid var(--mg-line);
+}
+.mg-inline-reply input {
+  min-width: 0;
+  height: 36px;
+  flex: 1;
+  padding: 0 12px;
+  border: 1px solid var(--mg-line);
+  border-radius: 8px;
+  outline: 0;
+  color: var(--foreground);
+  background: var(--background);
+  font-size: 13px;
+}
+.mg-inline-reply input:focus {
+  border-color: var(--primary);
+}
+.mg-inline-reply button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+}
+.messages-board .mg-inline-reply button {
+  color: var(--primary-foreground);
+}
+.mg-inline-reply button:disabled {
+  opacity: 0.45;
+}
+
+/* Links inside text (posts + replies) */
+.mg-body a,
+.mg-reply p a {
+  color: var(--mg-gold-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* Images in a post: 1 large, 2 side by side, 3–4 in a grid */
+.mg-images {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.mg-images.count-2,
+.mg-images.count-4 {
+  grid-template-columns: 1fr 1fr;
+}
+.mg-images.count-3 {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.mg-images.count-3 .mg-image:first-child {
+  grid-row: span 2;
+}
+.mg-image {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: var(--mg-soft);
+  cursor: zoom-in;
+}
+.mg-images.count-1 .mg-image {
+  max-height: 420px;
+}
+.mg-images:not(.count-1) .mg-image {
+  aspect-ratio: 4 / 3;
+}
+.mg-images.count-3 .mg-image:first-child {
+  aspect-ratio: auto;
+}
+.mg-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: inherit;
+  object-fit: cover;
+}
+
+/* Link cards */
+.mg-links {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.mg-link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--mg-line);
+  border-radius: 10px;
+  color: var(--foreground);
+  background: var(--background);
+  text-decoration: none;
+  transition: border-color 160ms ease;
+}
+.mg-link-card:hover {
+  border-color: var(--primary);
+}
+.mg-link-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+.mg-link-text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+.mg-link-text strong {
+  font-size: 13px;
+}
+.mg-link-text small {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mg-link-open {
+  color: var(--muted-foreground);
+  font-size: 16px;
+}
+
+/* Composer: image previews, link chips, link field */
+.mg-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.mg-preview {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  overflow: hidden;
+  border: 1px solid var(--mg-line);
+  border-radius: 10px;
+  background: var(--mg-soft);
+}
+.mg-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mg-preview button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  font-size: 15px;
+  line-height: 1;
+}
+.messages-board .mg-preview button {
+  color: #fff;
+}
+.mg-link-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mg-link-chips li {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
+  border-radius: 999px;
+  color: var(--mg-gold-text);
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  font-size: 11px;
+  font-weight: 600;
+}
+.mg-link-chips span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mg-link-chips button {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1;
+}
+.mg-link-chips button:hover {
+  background: var(--mg-soft);
+}
+.mg-link-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.mg-link-row input {
+  min-width: 0;
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--mg-line);
+  border-radius: 8px;
+  outline: 0;
+  color: var(--foreground);
+  background: var(--background);
+  font-size: 13px;
+}
+.mg-link-row input:focus {
+  border-color: var(--primary);
+}
+.mg-link-row button {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+.messages-board .mg-link-row button {
+  color: var(--primary-foreground);
+}
+.mg-link-row button:disabled {
+  opacity: 0.45;
+}
+
+/* Full-size image viewer */
+.mg-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.85);
+  cursor: zoom-out;
+  animation: mg-fade 0.2s ease both;
+}
+.mg-viewer img {
+  max-width: min(1100px, 100%);
+  max-height: calc(100dvh - 48px);
+  border-radius: 8px;
+  cursor: default;
+  object-fit: contain;
+}
+.mg-viewer button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 24px;
+  line-height: 1;
+}
+.messages-board .mg-viewer button {
+  color: #fff;
+}
+@keyframes mg-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 620px) {
+  .mg-link-row input {
+    font-size: 16px;
+  }
+  .mg-preview {
+    width: 72px;
+    height: 72px;
+  }
+  .mg-layout {
+    padding: 28px 14px 60px;
+  }
+  .mg-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .mg-search {
+    width: 100%;
+  }
+  .mg-search input,
+  .mg-composer textarea,
+  .mg-inline-reply input {
+    font-size: 16px; /* stops iOS zooming in on focus */
+  }
+  .mg-search-error {
+    margin-top: -6px;
+    text-align: left;
+  }
+  .mg-composer {
+    gap: 10px;
+    padding: 16px 14px;
+  }
+  .mg-composer > .mg-avatar {
+    width: 34px;
+    height: 34px;
+  }
+  .mg-composer-footer {
+    flex-wrap: wrap;
+  }
+  .mg-post {
+    margin-left: auto;
+  }
+  .mg-card-main {
+    gap: 10px;
+    padding: 18px 14px;
+  }
+  .mg-card-main > .mg-avatar {
+    width: 34px;
+    height: 34px;
+  }
+  .mg-topline > div:first-child {
+    display: grid;
+    gap: 1px;
+  }
+  .mg-replies {
+    padding-left: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .messages-board * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Upload state on composer image previews */
+.mg-preview.uploading img {
+  opacity: 0.5;
+}
+.mg-preview.error {
+  border-color: #e5484d;
+}
+.mg-preview-status {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 3px 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+.mg-preview.error .mg-preview-status {
+  background: #e5484d;
+}
+.mg-menu-error {
+  color: #e5484d;
+}
+.messages-board .mg-retry {
+  margin-top: 12px;
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Emoji reactions (posts + replies) — ReactionBar in Messages.jsx */
+.mg-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.mg-reactions.is-small {
+  gap: 4px;
+  margin-top: 6px;
+}
+.mg-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--mg-line);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  background: var(--mg-soft);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    transform 0.15s;
+}
+.mg-reaction b {
+  font-size: 11px;
+  font-weight: 700;
+}
+.messages-board .mg-reaction.mine {
+  border-color: color-mix(in srgb, var(--primary) 70%, transparent);
+  color: var(--mg-gold-text);
+  background: color-mix(in srgb, var(--primary) 16%, var(--mg-paper));
+}
+.mg-reaction:active {
+  transform: scale(0.94);
+}
+.mg-reactions.is-small .mg-reaction {
+  height: 24px;
+  padding: 0 7px;
+  font-size: 12px;
+}
+.mg-react-wrap {
+  position: relative;
+}
+.mg-react-add {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px dashed var(--mg-line);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+.messages-board .mg-react-add {
+  color: var(--muted-foreground);
+}
+.messages-board .mg-react-add:hover,
+.messages-board .mg-react-add[aria-expanded="true"] {
+  border-color: var(--primary);
+  border-style: solid;
+  color: var(--mg-gold-text);
+  background: var(--mg-soft);
+}
+.mg-reactions.is-small .mg-react-add {
+  width: 24px;
+  height: 24px;
+}
+.mg-react-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--mg-line);
+  border-radius: 999px;
+  background: var(--mg-paper);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  transform: translateX(-50%);
+  animation: mg-react-in 0.16s ease-out both;
+}
+.mg-react-menu button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+}
+.mg-react-menu button:hover,
+.mg-react-menu button:focus-visible {
+  background: var(--mg-soft);
+  transform: translateY(-2px) scale(1.18);
+  outline: none;
+}
+.mg-react-menu button.mine {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+@keyframes mg-react-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+}
+.mg-reaction:focus-visible,
+.mg-react-add:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Emoji button in the reply box (menu opens above, from the right) */
+.mg-inline-reply .mg-reply-emoji .mg-reply-emoji-btn {
+  border: 1px solid var(--mg-line);
+  background: transparent;
+}
+.messages-board .mg-inline-reply .mg-reply-emoji .mg-reply-emoji-btn {
+  color: var(--muted-foreground);
+}
+.messages-board .mg-inline-reply .mg-reply-emoji .mg-reply-emoji-btn:hover,
+.messages-board .mg-inline-reply .mg-reply-emoji .mg-reply-emoji-btn[aria-expanded="true"] {
+  border-color: var(--primary);
+  color: var(--mg-gold-text);
+}
+.mg-reply-emoji .mg-emoji-menu {
+  right: 0;
+  left: auto;
+}
+.mg-inline-reply .mg-reply-emoji .mg-emoji-menu button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+}
+.mg-inline-reply .mg-reply-emoji .mg-emoji-menu button:hover {
+  background: var(--mg-soft);
+}
+
+@media (max-width: 620px) {
+  /* Thumb-sized targets on phones */
+  .mg-reaction {
+    height: 32px;
+  }
+  .mg-react-add {
+    width: 34px;
+    height: 34px;
+  }
+  /* Keep the picker inside the screen: open from the left edge */
+  .mg-react-menu {
+    left: 0;
+    transform: none;
+    animation: none;
+  }
+  .mg-reply-emoji .mg-emoji-menu {
+    flex-wrap: wrap;
+    width: max-content;
+    max-width: 180px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-react-menu {
+    animation: none;
+  }
+  .mg-reaction,
+  .mg-react-menu button {
+    transition: none;
+  }
+}
+
+/* Threaded replies — ReplyItem in Messages.jsx. Each level steps in under
+   the avatar of the reply it answers, with a thin guide line; past
+   MAX_INDENT levels replies keep the same indent ("Replying to …"). */
+.mg-reply-node {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.mg-reply-body {
+  flex: 1;
+  min-width: 0;
+}
+.mg-thread {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.mg-thread.is-nested {
+  /* Line up under the middle of the avatar (29px) */
+  margin-left: 14px;
+  padding-left: 16px;
+  border-left: 1.5px solid var(--mg-line);
+}
+.mg-reply-to {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 600;
+}
+.mg-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.messages-board .mg-reply-btn {
+  color: var(--muted-foreground);
+}
+.messages-board .mg-reply-btn:hover,
+.messages-board .mg-reply-btn[aria-expanded="true"] {
+  color: var(--mg-gold-text);
+  background: var(--mg-soft);
+}
+.mg-reply-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+/* A reply box under a reply: tighter than the one under the post */
+.mg-reply-body .mg-inline-reply {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+@media (max-width: 620px) {
+  .mg-reply-btn {
+    height: 32px;
+  }
+  .mg-thread.is-nested {
+    margin-left: 8px;
+    padding-left: 10px;
+  }
+}

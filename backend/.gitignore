@@ -1,0 +1,10 @@
+node_modules/
+
+# Local settings (copy .env.example → .env); never upload
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*

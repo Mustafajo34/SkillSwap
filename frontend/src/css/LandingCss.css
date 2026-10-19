@@ -1,0 +1,223 @@
+/* Landing page classes. Tailwind, theme tokens and base element styles live in src/index.css. */
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes marquee-left {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.carousel-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-left 32s linear infinite;
+}
+
+.carousel-track:hover {
+  animation-play-state: paused;
+}
+
+.carousel-fade-left {
+  background: linear-gradient(to right, #0D0D0D 0%, transparent 12%);
+}
+
+.carousel-fade-right {
+  background: linear-gradient(to left, #0D0D0D 0%, transparent 12%);
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.modal-animate {
+  animation: modal-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.backdrop-animate {
+  animation: backdrop-in 0.25s ease forwards;
+}
+
+/* Closing — keep durations in sync with MODAL_EXIT_MS in Landing.jsx */
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+}
+
+@keyframes backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.modal-animate-out {
+  animation: modal-out 0.2s ease forwards;
+}
+
+.backdrop-animate-out {
+  animation: backdrop-out 0.2s ease forwards;
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #C9A84C 0%,
+    #F5C800 40%,
+    #C9A84C 60%,
+    #C9A84C 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+.btn-primary,
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0.7rem 1.7rem;
+  border-radius: 9999px;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease,
+    transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.btn-primary:focus-visible,
+.btn-outline:focus-visible {
+  outline: 2px solid #FAFAFA;
+  outline-offset: 3px;
+}
+
+.btn-primary:disabled {
+  cursor: default;
+  opacity: 0.8;
+  transform: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FFD91A 0%, #F5C800 55%, #E0B400 100%);
+  color: #0D0D0D;
+  border: none;
+  box-shadow: 0 4px 14px rgba(245, 200, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #F5C800 0%, #C9A84C 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(245, 200, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(245, 200, 0, 0.3);
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FAFAFA;
+  border: 1px solid rgba(250, 250, 250, 0.28);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.btn-outline:hover {
+  background: rgba(245, 200, 0, 0.1);
+  border-color: #F5C800;
+  color: #F5C800;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(245, 200, 0, 0.18);
+}
+
+.btn-outline:active {
+  transform: translateY(0);
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  color: #0D0D0D;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.7rem 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.form-input:focus {
+  border-color: #C9A84C;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6B6B6B;
+  margin-bottom: 0.35rem;
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+  .btn-primary,
+  .btn-outline {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    padding: 0.55rem 0.95rem;
+  }
+
+  /* 16px prevents iOS Safari from zooming the page on input focus */
+  .form-input {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .carousel-track,
+  .gold-shimmer,
+  .modal-animate,
+  .backdrop-animate,
+  .modal-animate-out,
+  .backdrop-animate-out {
+    animation: none;
+  }
+}

@@ -1,0 +1,48 @@
+/* Swap Requests tab — rendered inside the Dashboard's main area.
+   Tailwind, the theme tokens and the Manrope font come from index.css and
+   the dashboard; rules here are scoped under .swap-requests so nothing leaks
+   into other pages. */
+
+.swap-requests {
+  font-family: "Manrope", sans-serif;
+}
+
+.swap-requests button,
+.swap-requests select,
+.swap-requests textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swap-requests button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Carousel cards glide between positions */
+.sr-slide {
+  transition:
+    left 0.7s cubic-bezier(0.22, 0.8, 0.25, 1),
+    translate 0.7s cubic-bezier(0.22, 0.8, 0.25, 1),
+    rotate 0.7s cubic-bezier(0.22, 0.8, 0.25, 1),
+    scale 0.7s cubic-bezier(0.22, 0.8, 0.25, 1),
+    opacity 0.5s ease;
+}
+
+.sr-skeleton {
+  background: var(--muted);
+  animation: sr-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes sr-shimmer {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-slide {
+    transition-duration: 0.01ms;
+  }
+  .sr-skeleton {
+    animation: none;
+  }
+}

@@ -1,0 +1,206 @@
+/* Incoming video chat alert (IncomingCallAlert.jsx). Portaled to <body>, so
+   it carries its own light/dark colours (.is-light follows the dashboard
+   toggle). Everything is scoped under .call-alert-overlay. */
+
+.call-alert-overlay {
+  --ca-card: #161616;
+  --ca-text: #f5f5f0;
+  --ca-muted: #9a978f;
+  --ca-line: #2e2d29;
+  --ca-gold: #e4b743;
+  --ca-backdrop: #000000b8;
+
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: var(--ca-text);
+  font-family: "Outfit", sans-serif;
+  background: var(--ca-backdrop);
+  backdrop-filter: blur(8px);
+  animation: ca-fade 0.25s ease both;
+}
+.call-alert-overlay.is-light {
+  --ca-card: #ffffff;
+  --ca-text: #111110;
+  --ca-muted: #6b6862;
+  --ca-line: #ddd9d0;
+  --ca-gold: #c9a227;
+  --ca-backdrop: #1111106b;
+}
+
+.call-alert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(360px, 100%);
+  padding: 30px 24px 18px;
+  border: 1px solid var(--ca-line);
+  border-radius: 26px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--ca-gold) 18%, transparent), transparent 55%),
+    var(--ca-card);
+  box-shadow: 0 30px 90px #0000005c;
+  animation: ca-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.call-alert-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  margin-bottom: 16px;
+}
+.call-face {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  color: #111;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 0 0 4px var(--ca-card);
+}
+.call-ring {
+  position: absolute;
+  inset: 15px;
+  border: 2px solid var(--ca-gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: ca-ring 1.8s ease-out infinite;
+}
+.call-ring-2 {
+  animation-delay: 0.9s;
+}
+
+.call-alert-eyebrow {
+  margin: 0 0 6px;
+  color: var(--ca-gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.call-alert h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.call-alert > p {
+  margin: 6px 0 0;
+  color: var(--ca-muted);
+  font-size: 14px;
+}
+.call-alert > .call-alert-error {
+  margin-top: 12px;
+  color: #e5484d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.call-alert-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin-top: 24px;
+}
+.call-alert-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+.call-alert-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+.call-alert-actions button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.call-alert-actions button:focus-visible {
+  outline: 3px solid var(--ca-gold);
+  outline-offset: 2px;
+}
+.call-decline {
+  color: #fff;
+  background: #e5484d;
+}
+.call-accept {
+  color: #fff;
+  background: #2f9e5b;
+  box-shadow: 0 10px 28px #2f9e5b4d;
+}
+
+.call-alert-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  margin-top: 16px;
+}
+.call-alert-footer button {
+  padding: 4px;
+  border: 0;
+  color: var(--ca-muted);
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.call-alert-footer button:hover {
+  color: var(--ca-text);
+}
+
+@keyframes ca-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ca-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+}
+@keyframes ca-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .call-alert-overlay,
+  .call-alert,
+  .call-ring {
+    animation: none;
+  }
+  .call-ring {
+    opacity: 0.5;
+  }
+}

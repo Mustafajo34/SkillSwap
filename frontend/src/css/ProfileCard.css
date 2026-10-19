@@ -1,0 +1,48 @@
+/* Profile card (components/ProfileCard.jsx) — fade / pop in and out.
+   Global on purpose: the card is used by Browse Skills and Skills Connect. */
+
+.bs-fade-in {
+  animation: bs-fade-in 0.25s ease both;
+}
+.bs-fade-out {
+  animation: bs-fade-out 0.16s ease both;
+}
+.bs-pop-in {
+  animation: bs-pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bs-pop-out {
+  animation: bs-pop-out 0.16s ease both;
+}
+
+/* Opacity only: a transform here would trap the fixed-position card */
+@keyframes bs-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes bs-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes bs-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@keyframes bs-pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-fade-in,
+  .bs-fade-out,
+  .bs-pop-in,
+  .bs-pop-out {
+    animation-duration: 0.01ms;
+  }
+}

@@ -1,0 +1,882 @@
+/* My Skills tab ("Skill Connects") — rendered inside the Dashboard's main
+   area. Tailwind and fonts load once in index.css. Every class is prefixed
+   ms- and scoped under .my-skills so nothing leaks into (or in from) other
+   pages, and colours come from the dashboard's theme tokens so the page
+   follows its light/dark toggle. */
+
+.my-skills {
+  --ms-soft-gold: color-mix(in srgb, var(--primary) 12%, var(--card));
+  --ms-soft-gold-2: color-mix(in srgb, var(--primary) 5%, var(--card));
+  --ms-gold-line: color-mix(in srgb, var(--primary) 45%, var(--border));
+  --ms-gold-text: color-mix(in srgb, var(--primary) 70%, var(--foreground));
+  --ms-chip: color-mix(in srgb, var(--muted) 70%, var(--card));
+
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "DM Sans", sans-serif;
+}
+/* The profile card (Tailwind, see ProfileCard.jsx) keeps its own colours */
+.my-skills :is(button, input, select):not([data-profile-card] *) {
+  font: inherit;
+  color: inherit;
+}
+.my-skills button {
+  cursor: pointer;
+}
+.my-skills button:disabled {
+  cursor: default;
+}
+.my-skills button:focus-visible,
+.my-skills input:focus-visible,
+.my-skills select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.ms-muted {
+  color: var(--muted-foreground);
+}
+
+/* ── Page heading + tabs ─────────────────────────────────────────────────── */
+.ms-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 44px clamp(16px, 4vw, 58px) 70px;
+}
+.ms-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+.ms-eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--ms-gold-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+.ms-heading h1 {
+  margin: 0 0 14px;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(38px, 5vw, 61px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+}
+.ms-heading h1 span {
+  color: var(--primary);
+}
+.ms-heading p {
+  max-width: 460px;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ms-total {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  padding-left: 24px;
+  border-left: 1px solid var(--border);
+}
+.ms-total strong {
+  font-family: "Manrope", sans-serif;
+  font-size: 34px;
+  line-height: 1;
+}
+.ms-total span {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Three equal tabs that always fit — no sideways scrolling at any width.
+   Narrow screens switch "Find connects" to "Find"; the tiniest also shrink
+   the counts. Labels truncate with … rather than ever overflowing. */
+.ms-page-tabs {
+  container: ms-tabs / inline-size;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 26px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+.ms-page-tabs button {
+  display: flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  touch-action: manipulation;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.my-skills .ms-page-tabs button {
+  color: var(--muted-foreground);
+}
+.my-skills .ms-page-tabs button:hover {
+  color: var(--foreground);
+  background: var(--secondary);
+}
+.my-skills .ms-page-tabs button.ms-active {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  font-weight: 700;
+}
+.ms-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-tab-short {
+  display: none;
+}
+.ms-tab-count {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--ms-chip);
+  color: var(--foreground);
+  font-size: 10px;
+  font-weight: 800;
+}
+.ms-active .ms-tab-count {
+  background: color-mix(in srgb, var(--primary-foreground) 22%, transparent);
+  color: inherit;
+}
+.ms-tab-count.ms-hot {
+  color: #fff;
+  background: #e5484d;
+}
+.ms-panel {
+  animation: ms-fade 0.25s ease both;
+}
+
+/* ── Shared bits ─────────────────────────────────────────────────────────── */
+.ms-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.ms-section-title > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.ms-section-title h2 {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.ms-count-pill {
+  display: grid;
+  place-items: center;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 6px;
+  border-radius: 12px;
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+}
+.ms-count-pill.ms-quiet {
+  color: var(--foreground);
+  background: var(--ms-chip);
+}
+.ms-text-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.my-skills .ms-text-button {
+  color: var(--ms-gold-text);
+}
+.ms-pill-button {
+  margin-top: 14px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  transition: filter 0.2s ease;
+}
+.my-skills .ms-pill-button {
+  color: var(--primary-foreground);
+}
+.ms-pill-button:hover {
+  filter: brightness(1.08);
+}
+
+.ms-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #111;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+.ms-avatar-large {
+  width: 50px;
+  height: 50px;
+  font-size: 15px;
+}
+
+.ms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ms-chip {
+  padding: 3px 9px;
+  border: 1px solid var(--ms-gold-line);
+  border-radius: 999px;
+  color: var(--ms-gold-text);
+  background: var(--ms-soft-gold);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ms-chip-more {
+  border-color: var(--border);
+  color: var(--muted-foreground);
+  background: var(--ms-chip);
+}
+.ms-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ms-rating svg {
+  color: var(--primary);
+}
+
+.ms-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted-foreground);
+  background: var(--card);
+  transition: border-color 0.2s ease;
+}
+.ms-search:focus-within {
+  border-color: var(--primary);
+}
+.ms-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--foreground);
+  background: transparent;
+  font-size: 14px;
+}
+.my-skills .ms-search input:focus-visible {
+  outline: none;
+}
+.ms-search input::placeholder {
+  color: var(--muted-foreground);
+}
+.ms-filter {
+  max-width: 420px;
+  margin-bottom: 18px;
+}
+
+.ms-connect-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 118px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--secondary);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    filter 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+}
+.ms-connect-button:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+.ms-connect-button.ms-solid {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.my-skills .ms-connect-button.ms-solid {
+  color: var(--primary-foreground);
+}
+.ms-connect-button.ms-solid:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.ms-connect-button:disabled {
+  opacity: 0.65;
+}
+.ms-connect-button[aria-busy="true"] {
+  opacity: 0.5;
+}
+
+.ms-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -10px 0 20px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, #e5484d 45%, var(--border));
+  border-radius: 12px;
+  color: #e5484d;
+  background: color-mix(in srgb, #e5484d 10%, var(--card));
+  font-size: 12px;
+  font-weight: 600;
+}
+.ms-alert button {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  background: none;
+}
+
+/* ── Connects ────────────────────────────────────────────────────────────── */
+.ms-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--ms-gold-line);
+  border-radius: 14px;
+  background: linear-gradient(110deg, var(--ms-soft-gold), var(--ms-soft-gold-2));
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  transition: border-color 0.2s ease;
+}
+.ms-banner:hover {
+  border-color: var(--primary);
+}
+.ms-banner-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  color: var(--ms-gold-text);
+  font-weight: 800;
+}
+.ms-friend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+}
+.ms-friend-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 17px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+.ms-friend-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ms-gold-line);
+  box-shadow: 0 12px 30px rgba(27, 26, 22, 0.08);
+}
+.ms-friend-card .ms-avatar {
+  margin-bottom: 11px;
+}
+.ms-friend-card h3,
+.ms-request-top h3 {
+  margin: 0 0 2px;
+  font-family: "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+}
+.ms-friend-card p,
+.ms-request-top p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.ms-card-meta {
+  margin: 8px 0 12px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.ms-friend-card .ms-chips {
+  justify-content: center;
+}
+.ms-card-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  width: 100%;
+  border-top: 1px solid var(--border);
+}
+.ms-more-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+.my-skills .ms-more-button {
+  color: var(--muted-foreground);
+}
+.ms-more-button:hover {
+  background: var(--secondary);
+}
+.ms-menu {
+  position: absolute;
+  top: 42px;
+  right: 10px;
+  z-index: 5;
+  min-width: 160px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+  animation: ms-pop 0.16s ease both;
+}
+.ms-menu button {
+  width: 100%;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+.my-skills .ms-menu button {
+  color: #e5484d;
+}
+.ms-menu button:hover {
+  background: color-mix(in srgb, #e5484d 10%, transparent);
+}
+
+/* ── Find connects ───────────────────────────────────────────────────────── */
+.ms-find-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.ms-select {
+  flex: 0 0 auto;
+  min-width: 170px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 600;
+}
+.ms-member-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ms-member-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  transition: border-color 0.2s ease;
+}
+.ms-member-row:hover {
+  border-color: var(--ms-gold-line);
+}
+.ms-member-info {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+.ms-member-info > strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-member-info > .ms-muted {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-member-info .ms-chips {
+  margin-top: 3px;
+}
+.ms-member-side {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* ── Pending ─────────────────────────────────────────────────────────────── */
+.ms-request-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+}
+.ms-request-card {
+  padding: 19px;
+  border: 1px solid var(--ms-gold-line);
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--ms-soft-gold), var(--ms-soft-gold-2));
+  box-shadow: 0 7px 24px rgba(57, 48, 6, 0.05);
+}
+.ms-request-top {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.ms-mutual {
+  margin: 14px 0;
+}
+.ms-request-actions {
+  display: flex;
+  gap: 7px;
+}
+.ms-request-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 9px;
+  transition: filter 0.2s ease;
+}
+.ms-accept {
+  flex: 1;
+  gap: 7px;
+  border: 1px solid var(--foreground);
+  background: var(--foreground);
+  font-size: 12px;
+  font-weight: 700;
+}
+.my-skills .ms-accept {
+  color: var(--background);
+}
+.ms-accept:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.ms-decline {
+  width: 40px;
+  border: 1px solid var(--ms-gold-line);
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+}
+.ms-request-actions button:disabled {
+  opacity: 0.5;
+}
+.ms-friends-section {
+  margin-top: 40px;
+}
+
+/* ── Empty / loading states ──────────────────────────────────────────────── */
+.ms-empty,
+.ms-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 210px;
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+.ms-empty > span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  color: var(--accent-foreground);
+  background: var(--accent);
+}
+.ms-empty strong,
+.ms-no-results strong {
+  margin-top: 8px;
+  color: var(--foreground);
+  font-size: 14px;
+}
+.ms-empty p,
+.ms-no-results p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+.ms-no-results.ms-compact {
+  min-height: 120px;
+}
+.ms-empty-requests {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 118px;
+  border: 1px dashed var(--ms-gold-line);
+  border-radius: 16px;
+  background: var(--ms-soft-gold);
+}
+.ms-empty-requests > span {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  color: var(--accent-foreground);
+  background: var(--accent);
+}
+.ms-empty-requests strong {
+  font-size: 13px;
+}
+.ms-empty-requests p {
+  margin: 3px 0 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.ms-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+.ms-member-list .ms-skeleton-card {
+  flex-direction: row;
+  padding: 16px;
+}
+.ms-skeleton {
+  display: block;
+  border-radius: 8px;
+  background: var(--muted);
+  animation: ms-shimmer 1.2s ease-in-out infinite;
+}
+.ms-skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+.ms-skeleton-line {
+  width: 60%;
+  height: 11px;
+}
+.ms-skeleton-line.ms-short {
+  width: 35%;
+}
+
+@keyframes ms-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ms-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+@keyframes ms-shimmer {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (min-width: 1180px) {
+  .ms-friend-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .ms-request-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 680px) {
+  .ms-content {
+    padding: 28px 16px 50px;
+  }
+  .ms-heading {
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .ms-total {
+    display: none;
+  }
+  .ms-page-tabs button {
+    gap: 6px;
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+  .ms-find-bar {
+    flex-direction: column;
+  }
+  .ms-select {
+    height: 42px;
+  }
+  .ms-search input {
+    font-size: 16px; /* stops iOS zooming in on focus */
+  }
+  .ms-request-grid {
+    display: flex;
+    margin: 0 -16px;
+    padding: 0 16px 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  .ms-request-card {
+    min-width: 270px;
+    scroll-snap-align: start;
+  }
+  .ms-friend-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+  }
+  .ms-member-row {
+    flex-wrap: wrap;
+  }
+  .ms-member-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-left: 64px;
+  }
+}
+@media (max-width: 400px) {
+  .ms-friend-grid {
+    grid-template-columns: 1fr;
+  }
+  .ms-member-side {
+    padding-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ms-panel,
+  .ms-menu,
+  .ms-skeleton,
+  .ms-friend-card {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Profile photos inside avatars (UserAvatar) stay within the circle */
+.ms-avatar {
+  overflow: hidden;
+}
+
+/* People that open a profile card (hover, or tap on touch screens) */
+.ms-has-profile {
+  cursor: pointer;
+}
+.ms-has-profile:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.ms-member-row.ms-profile-open,
+.ms-friend-card.ms-profile-open,
+.ms-request-card.ms-profile-open {
+  border-color: var(--ms-gold-line);
+}
+.ms-section-title:has(.ms-profile-hint) {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.ms-profile-hint {
+  font-size: 12px;
+}
+
+/* Tab bar under ~420px wide: short labels */
+@container ms-tabs (max-width: 420px) {
+  .ms-tab-full {
+    display: none;
+  }
+  .ms-tab-short {
+    display: inline;
+  }
+}
+/* Very narrow (small phones): tighter, smaller counts */
+@container ms-tabs (max-width: 290px) {
+  .ms-page-tabs button {
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 11.5px;
+  }
+  .ms-tab-count {
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+}

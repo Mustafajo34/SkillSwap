@@ -1,0 +1,55 @@
+/* Edit Profile page (/profile). Tailwind and fonts load once in index.css;
+   colours come from the dashboard's theme tokens (.dashboard, and
+   .dashboard.light in light mode — see Dashboard.css). Everything here is
+   scoped under .edit-profile so nothing leaks into other pages. */
+
+.edit-profile {
+  min-height: 100dvh;
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.edit-profile button,
+.edit-profile input,
+.edit-profile select,
+.edit-profile textarea {
+  font: inherit;
+}
+
+.edit-profile button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.edit-profile button:disabled {
+  cursor: default;
+}
+
+.edit-profile button:focus-visible,
+.edit-profile select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.edit-profile ::selection {
+  color: #111110;
+  background: #f5c518;
+}
+
+/* Native selects pick up the theme's colours */
+.edit-profile select option {
+  color: var(--foreground);
+  background: var(--card);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edit-profile *,
+  .edit-profile *::before,
+  .edit-profile *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

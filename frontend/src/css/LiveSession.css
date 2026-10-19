@@ -1,0 +1,4558 @@
+/* Live session room — rendered inside the Dashboard's main area.
+   Fonts and Tailwind are loaded in index.css; every rule here is scoped
+   under .meeting so nothing leaks into the Landing or Dashboard pages. */
+
+/* ── Theme ───────────────────────────────────────────────────────────────
+   Live Sessions follows the dashboard's light/dark mode. Dark values are
+   the defaults; .dashboard.light (and portaled modals marked .is-light)
+   switch to the light set. Gold fills, video overlays and shadows stay
+   the same in both. */
+.meeting-shell,
+.invite-overlay {
+  color-scheme: dark;
+  --ls-bg: #080808;
+  --ls-bar: #090909ed;
+  --ls-dock: #0b0b0bf5;
+  --ls-dock-solid: #0b0b0b;
+  --ls-sunken: #0e0e0d;
+  --ls-panel: #151514;
+  --ls-raised: #1b1b1a;
+  --ls-hover: #1d1d1b;
+  --ls-track: #292826;
+  --ls-knob: #aaa69e;
+  --ls-line-soft: #292724;
+  --ls-line: #2d2c29;
+  --ls-line-strong: #3a3833;
+  --ls-text: #f7f5ee;
+  --ls-text-2: #c8c4bb;
+  --ls-muted: #8f8b83;
+  --ls-faint: #77746d;
+  --ls-gold-text: #f6d878;
+  --ls-gold-soft: #282218;
+  --ls-gold-soft-glass: #14120cf0;
+  --ls-gold-line: #6b592c;
+  --ls-red-text: #ff9e89;
+  --ls-red-soft: #241310;
+  --ls-red-soft-glass: #1d1110f0;
+  --ls-red-line: #5d2d25;
+  --ls-red-hover: #4c2018;
+  --ls-red-hover-text: #ffffff;
+  --ls-scrim: #0d0d0cd1;
+  --ls-backdrop: #000000b3;
+}
+
+.dashboard.light .meeting-shell,
+.invite-overlay.is-light {
+  color-scheme: light;
+  --ls-bg: #f8f7f4;
+  --ls-bar: #fffffff0;
+  --ls-dock: #fffffff5;
+  --ls-dock-solid: #ffffff;
+  --ls-sunken: #f3f1ec;
+  --ls-panel: #ffffff;
+  --ls-raised: #faf9f6;
+  --ls-hover: #f0ede6;
+  --ls-track: #e8e5de;
+  --ls-knob: #ffffff;
+  --ls-line-soft: #ebe7df;
+  --ls-line: #ddd9d0;
+  --ls-line-strong: #cbc6bb;
+  --ls-text: #111110;
+  --ls-text-2: #3a3935;
+  --ls-muted: #6b6862;
+  --ls-faint: #8d8981;
+  --ls-gold-text: #8a6610;
+  --ls-gold-soft: #fbf3dc;
+  --ls-gold-soft-glass: #fbf3dcf2;
+  --ls-gold-line: #e2c879;
+  --ls-red-text: #b8381f;
+  --ls-red-soft: #fdecea;
+  --ls-red-soft-glass: #fdeceaf2;
+  --ls-red-line: #f0c2b9;
+  --ls-red-hover: #f9d5ce;
+  --ls-red-hover-text: #8c2a1a;
+  --ls-scrim: #f8f7f4e0;
+  --ls-backdrop: #11111066;
+}
+
+.meeting button,
+.meeting input {
+  font: inherit;
+}
+.meeting button {
+  color: inherit;
+}
+.meeting button:focus-visible,
+.meeting input:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 3px;
+}
+
+/* The shell is the size container: breakpoints below respond to the space
+   the meeting actually has (dashboard sidebar or not), not the window. */
+.meeting-shell {
+  container: meeting / size;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+}
+
+.meeting {
+  --gold: #e4b743;
+  --pale: #f6d878;
+  --muted: #918e87;
+  display: grid;
+  grid-template-rows: 74px minmax(0, 1fr) 94px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--ls-text);
+  font-family: "DM Sans", sans-serif;
+  font-synthesis: none;
+  background:
+    radial-gradient(circle at 40% 10%, #342b181c, transparent 36%), var(--ls-bg);
+}
+.topbar {
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 26px;
+  border-bottom: 1px solid var(--ls-line-soft);
+  background: var(--ls-bar);
+  backdrop-filter: blur(18px);
+}
+.brand,
+.brand > span,
+.status,
+.title {
+  display: flex;
+  align-items: center;
+}
+/* SkillSwap logo — matches the dashboard's Logo component */
+.brand {
+  gap: 10px;
+  user-select: none;
+}
+.brand > b {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #c9a227 0%, #f5c518 50%, #c9a227 100%);
+  box-shadow:
+    0 10px 15px -3px #0000001a,
+    0 4px 6px -4px #0000001a;
+}
+.brand > b svg {
+  width: 61%;
+  height: 61%;
+}
+.brand > span {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  line-height: 1;
+}
+.brand strong {
+  color: var(--ls-text);
+  font-family: "DM Serif Display", serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.brand strong em {
+  color: #c9a227;
+  font-style: normal;
+}
+.brand small {
+  color: var(--ls-muted);
+  font-family: "DM Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.title {
+  flex-direction: column;
+  gap: 5px;
+}
+.title h1 {
+  margin: 0;
+  font: 600 14px Manrope;
+}
+.title span {
+  color: var(--ls-faint);
+  font-size: 10px;
+}
+.status {
+  justify-content: flex-end;
+  gap: 12px;
+}
+.sidebar header button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--ls-line);
+  border-radius: 10px;
+  color: var(--ls-muted);
+  background: var(--ls-panel);
+  cursor: pointer;
+}
+.status time {
+  color: var(--ls-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+/* ── Top bar actions: Record pill + ⋯ menu ───────────────────────────────── */
+.status {
+  gap: 8px;
+}
+.rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px 0 12px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 #ffffff0a inset;
+  touch-action: manipulation;
+}
+.rec i {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff5a4d;
+  box-shadow: 0 0 0 3px #ff5a4d26;
+}
+button.rec {
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s,
+    box-shadow 0.18s,
+    transform 0.12s;
+}
+button.rec:hover:not(:disabled) {
+  border-color: #ff5a4d66;
+  color: var(--ls-text);
+  background: var(--ls-raised);
+}
+button.rec:active:not(:disabled) {
+  transform: scale(0.97);
+}
+button.rec:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+button.rec:focus-visible,
+.more-button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+/* Recording: solid red, pulsing white dot, live clock */
+.rec.is-live {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5a4d, #e5383b);
+  box-shadow: 0 6px 18px #e5383b4d;
+}
+button.rec.is-live:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b5f, #d93033);
+}
+.rec.is-live i {
+  background: #fff;
+  box-shadow: 0 0 0 0 #ffffff99;
+  animation: rec-dot 1.6s ease-out infinite;
+}
+@keyframes rec-dot {
+  0% {
+    box-shadow: 0 0 0 0 #ffffffa6;
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px #ffffff00;
+  }
+}
+/* The clock stays visible on phones too */
+.meeting .status .rec time {
+  display: inline;
+  padding-left: 7px;
+  border-left: 1px solid #ffffff59;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.more-wrap {
+  position: relative;
+}
+.more-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+  box-shadow: 0 1px 0 #ffffff0a inset;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: 0.18s;
+}
+.more-button:hover,
+.more-button[aria-expanded="true"] {
+  border-color: var(--ls-line-strong);
+  color: var(--ls-text);
+  background: var(--ls-raised);
+}
+.more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid var(--ls-line);
+  border-radius: 14px;
+  background: var(--ls-panel);
+  box-shadow: 0 18px 50px #0007;
+  animation: fade-in 0.15s both;
+}
+.more-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ls-text);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.more-menu button:hover,
+.more-menu button:focus-visible {
+  outline: none;
+  background: var(--ls-hover);
+}
+/* Phones: icon-sized Record button (the dot says it), clock when live */
+@container meeting (max-width: 540px) {
+  .rec {
+    height: 34px;
+    padding: 0 11px;
+  }
+  .rec:not(.is-live) > span {
+    display: none;
+  }
+  .more-button {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* Participants: "you're being recorded" (stays until dismissed) */
+.meeting .rec-alert {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(460px, calc(100% - 24px));
+  padding: 12px 12px 12px 14px;
+  border: 1px solid #ff5a4d59;
+  border-radius: 16px;
+  color: var(--ls-text);
+  background: var(--ls-panel);
+  box-shadow: 0 18px 50px #0008;
+  transform: translateX(-50%);
+  animation: fade-in 0.25s both;
+}
+.meeting .rec-alert > i {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff5a4d;
+  animation: rec-dot-red 1.6s ease-out infinite;
+}
+@keyframes rec-dot-red {
+  0% {
+    box-shadow: 0 0 0 0 #ff5a4d99;
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px #ff5a4d00;
+  }
+}
+.meeting .rec-alert > span {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.meeting .rec-alert b {
+  font-size: 13px;
+}
+.meeting .rec-alert small {
+  color: var(--ls-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.meeting .rec-alert button {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5a4d, #e5383b);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.meeting .rec-alert button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rec.is-live i,
+  .meeting .rec-alert > i {
+    animation: none;
+  }
+}
+.confirm-icon.is-record {
+  color: var(--ls-red-text);
+  background: var(--ls-red-soft);
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0;
+  min-height: 0;
+  transition: grid-template-columns 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.stage.open {
+  grid-template-columns: minmax(0, 1fr) min(340px, 32cqw);
+}
+.video-area {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px 12px 14px 20px;
+}
+.video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--ls-line);
+  border-radius: 20px;
+  background: var(--ls-panel);
+  box-shadow: 0 20px 80px #0007;
+}
+/* Empty-room stage with the centered gold invite button. */
+.invite-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 50%, #e4b7431f, transparent 42%),
+    radial-gradient(circle at 50% 120%, #e4b74314, transparent 55%), var(--ls-sunken);
+}
+.invite-stage > span {
+  max-width: 260px;
+  color: var(--ls-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.invite-stage .invite-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 28px;
+  border: 1px solid #f6d87899;
+  border-radius: 999px;
+  color: #171207;
+  background: linear-gradient(135deg, #f8dd85 0%, #e4b743 48%, #c8941f 100%);
+  font: 700 15px Manrope;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 6px #e4b74314,
+    0 12px 36px #e4b74340,
+    inset 0 1px 0 #fff6;
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+  animation: cta-glow 2.8s ease-in-out infinite;
+}
+.invite-stage .invite-cta:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 0 0 8px #e4b7431f,
+    0 18px 44px #e4b74359,
+    inset 0 1px 0 #fff8;
+}
+.invite-stage .invite-cta:active {
+  transform: translateY(0) scale(0.98);
+}
+.invite-toast {
+  position: absolute;
+  z-index: 3;
+  bottom: 18px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 12px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft-glass);
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+  animation: toast 3s forwards;
+}
+
+/* Your own camera preview (picture-in-picture tile). */
+.self-view {
+  position: absolute;
+  z-index: 2;
+  right: 16px;
+  bottom: 16px;
+  width: clamp(130px, 24cqw, 260px);
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 14px;
+  background: var(--ls-sunken);
+  box-shadow: 0 14px 40px #000a;
+  animation: tile 0.3s both;
+}
+.self-view.is-live {
+  border-color: var(--ls-gold-line);
+  box-shadow:
+    0 14px 40px #000a,
+    0 0 0 1px #e4b74326;
+}
+.self-view video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.self-view.is-live video {
+  opacity: 1;
+}
+.self-view video.mirrored {
+  transform: scaleX(-1);
+}
+.self-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px;
+  color: var(--ls-muted);
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: center;
+  background: radial-gradient(circle, #e4b74314, transparent 60%), var(--ls-sunken);
+}
+.self-state .avatar {
+  --avatar: #e4b743;
+  width: 34px;
+  height: 34px;
+  font-size: 9px;
+}
+.self-state.error {
+  color: var(--ls-red-text);
+}
+.self-state.error span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+.meeting .self-state button {
+  padding: 5px 10px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 8px;
+  color: #171207;
+  background: #e4b743;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.self-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--ls-line-strong);
+  border-top-color: #e4b743;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.self-tag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: #090909c4;
+  font-size: 9px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+.self-tag em {
+  display: grid;
+  place-items: center;
+  color: var(--ls-red-text);
+}
+.tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, #0000000a, transparent 55%, #0009),
+    linear-gradient(90deg, #09070322, transparent 25%);
+}
+.speaker {
+  position: absolute;
+  left: 18px;
+  bottom: 17px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid #ffffff20;
+  border-radius: 10px;
+  background: #090909ba;
+  backdrop-filter: blur(14px);
+}
+.speaker strong {
+  font-size: 12px;
+}
+.speaker small {
+  color: var(--ls-muted);
+  font-size: 10px;
+}
+.sharing {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 10px;
+  background: var(--ls-gold-soft-glass);
+  font-size: 11px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+}
+.panel-peek {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px;
+  border: 1px solid var(--ls-line-strong);
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+  color: var(--ls-muted);
+  background: var(--ls-panel);
+  cursor: pointer;
+  transform: translateY(-50%);
+  animation: peek 0.3s both;
+}
+.panel-peek span {
+  font-size: 11px;
+}
+.panel-peek b {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: #181205;
+  background: var(--gold);
+  font-size: 9px;
+}
+
+.side-wrap {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.sidebar {
+  width: calc(100% - 12px);
+  height: calc(100% - 30px);
+  margin: 16px 12px 14px 0;
+  overflow: hidden;
+  border: 1px solid var(--ls-line-soft);
+  border-radius: 18px;
+  background: linear-gradient(var(--ls-panel), var(--ls-sunken));
+  box-shadow: -20px 0 60px #0004;
+  animation: side-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.sidebar > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  padding: 15px 15px 14px 18px;
+  border-bottom: 1px solid var(--ls-line-soft);
+}
+.sidebar header span {
+  color: var(--ls-gold-text);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.sidebar h2 {
+  margin: 5px 0 0;
+  font: 600 16px Manrope;
+}
+.side-content {
+  height: calc(100% - 76px);
+  padding: 18px;
+  overflow-y: auto;
+}
+.side-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  color: var(--ls-muted);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.side-meta b {
+  padding: 5px 8px;
+  border-radius: 7px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft);
+}
+.people {
+  display: grid;
+  gap: 7px;
+}
+.person {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: 0.16s;
+}
+.person:hover {
+  border-color: var(--ls-line);
+  background: var(--ls-hover);
+}
+.avatar {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--avatar) 55%, white 10%);
+  border-radius: 11px;
+  color: #111;
+  background: var(--avatar);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+.avatar em {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--ls-panel);
+  border-radius: 50%;
+  background: #73c98e;
+}
+.avatar.small {
+  width: 31px;
+  height: 31px;
+  border-radius: 9px;
+  font-size: 9px;
+}
+.avatar.large {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  font-size: 15px;
+}
+.person > span:not(.avatar) {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+}
+.person strong {
+  font-size: 11px;
+}
+.person small {
+  color: var(--ls-faint);
+  font-size: 9px;
+}
+.person > .person-mic {
+  display: grid;
+  flex: 0 0 auto;
+  color: var(--ls-faint);
+}
+.person > .person-mic.mic-off {
+  color: var(--ls-red-text);
+}
+.wide-button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 10px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 10px;
+  background: var(--ls-raised);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wide-button:hover {
+  color: var(--ls-gold-text);
+  border-color: var(--ls-gold-line);
+}
+
+.settings {
+  display: grid;
+}
+.settings > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 3px;
+  border-bottom: 1px solid var(--ls-line-soft);
+}
+.settings label > span {
+  display: grid;
+  gap: 4px;
+}
+.settings label b {
+  font-size: 10px;
+}
+.settings label small {
+  color: var(--ls-faint);
+  font-size: 8px;
+}
+.settings input {
+  appearance: none;
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 20px;
+  background: var(--ls-track);
+  cursor: pointer;
+}
+.settings input:after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ls-knob);
+  transition: 0.18s;
+}
+.settings input:checked {
+  background: var(--gold);
+}
+.settings input:checked:after {
+  left: 16px;
+  background: #171207;
+}
+
+
+.dock {
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 8px 16px max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--ls-line-soft);
+  background: var(--ls-dock);
+  box-shadow: 0 -12px 44px #0005;
+  backdrop-filter: blur(18px);
+}
+.dock > div {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.divider {
+  width: 1px;
+  height: 38px;
+  margin: 0 3px;
+  background: var(--ls-line);
+}
+.control {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 55px;
+  padding: 6px 5px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ls-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: 0.16s;
+}
+.control small {
+  font-size: 9px;
+}
+.control:hover,
+.control.active {
+  color: var(--ls-text);
+  background: var(--ls-hover);
+}
+.control-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ls-line);
+  border-radius: 11px;
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+  transition: 0.16s;
+}
+.control.active .control-icon {
+  color: #171207;
+  border-color: var(--ls-gold-line);
+  background: var(--gold);
+  box-shadow: 0 5px 20px #e4b7431a;
+}
+.control-icon b {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  border: 2px solid var(--ls-dock-solid);
+  border-radius: 20px;
+  color: #171207;
+  background: var(--gold);
+  font-size: 7px;
+}
+.side-backdrop {
+  display: none;
+}
+.leave {
+  flex-shrink: 0;
+  padding: 11px 18px;
+  border: 1px solid var(--ls-red-line);
+  border-radius: 10px;
+  color: var(--ls-red-text);
+  background: var(--ls-red-soft);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.leave:hover:not(:disabled) {
+  color: var(--ls-red-hover-text);
+  background: var(--ls-red-hover);
+}
+/* Nothing to leave until someone else is in the video session */
+.leave:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* ── Live connection: status, peers, permission gate ─────────────────────── */
+.session-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.session-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e4b743;
+  animation: pulse 1.7s infinite;
+}
+.session-status.is-connected::before {
+  background: #73c98e;
+  animation: none;
+}
+.session-status.is-error::before {
+  background: #ff735c;
+  animation: none;
+}
+
+.room-alert {
+  position: absolute;
+  z-index: 5;
+  top: 14px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 28px);
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 12px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft-glass);
+  font-size: 11px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+  animation: fade-in 0.25s both;
+}
+.room-alert.is-error {
+  border-color: var(--ls-red-line);
+  color: var(--ls-red-text);
+  background: var(--ls-red-soft-glass);
+}
+.room-alert span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meeting .room-alert button {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 8px;
+  color: #171207;
+  background: #e4b743;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Remote participants. Columns follow how many people are on screen. */
+.peer-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+.peer-grid[data-count="2"],
+.peer-grid[data-count="3"],
+.peer-grid[data-count="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.peer-grid[data-count="5"],
+.peer-grid[data-count="6"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.peer-grid[data-count="1"] {
+  padding: 0;
+}
+.peer-grid[data-count="1"] .peer-tile {
+  border: 0;
+  border-radius: 0;
+}
+.peer-tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ls-line);
+  border-radius: 14px;
+  background: var(--ls-panel);
+  animation: tile 0.3s both;
+}
+.peer-tile > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Hidden, not removed, so their audio keeps playing */
+.peer-tile.cam-off > video {
+  opacity: 0;
+}
+.peer-off {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 45%, #e4b74318, transparent 45%), var(--ls-panel);
+}
+.peer-tile .speaker {
+  left: 10px;
+  bottom: 10px;
+  max-width: calc(100% - 20px);
+}
+.peer-tile .speaker strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.speaker em {
+  display: grid;
+  place-items: center;
+  color: var(--ls-red-text);
+}
+.peer-status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  color: var(--ls-text-2);
+  background: #090909c4;
+  font-size: 10px;
+  backdrop-filter: blur(8px);
+}
+.peer-status .self-spinner {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+}
+.meeting .peer-unmute {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #171207;
+  background: #e4b743;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 10px 30px #e4b74340;
+}
+
+/* Pre-join: explains access before the browser's own prompt appears */
+.permission-gate {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 50% 35%, #e4b7431a, transparent 45%), var(--ls-sunken);
+}
+.gate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(400px, 100%);
+  text-align: center;
+  animation: modal-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.gate-icons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.gate-icons span {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  color: #171207;
+  background: linear-gradient(135deg, #f8dd85, #e4b743 55%, #c8941f);
+  box-shadow: 0 10px 28px #e4b74333;
+}
+.gate-icons.blocked span {
+  color: var(--ls-red-text);
+  background: var(--ls-red-soft);
+  box-shadow: 0 0 0 1px var(--ls-red-line);
+}
+.gate-card h2 {
+  margin: 0;
+  font: 700 20px Manrope;
+}
+.gate-card p {
+  margin: 0;
+  color: var(--ls-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.gate-card p b,
+.gate-card li b {
+  color: var(--ls-gold-text);
+}
+.gate-card ol {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 2px 0 4px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  text-align: left;
+}
+.gate-card li {
+  position: relative;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--ls-line-soft);
+  border-radius: 12px;
+  color: var(--ls-text-2);
+  background: var(--ls-raised);
+  font-size: 12px;
+  line-height: 1.45;
+  counter-increment: step;
+}
+.gate-card li::before {
+  content: counter(step);
+  position: absolute;
+  top: 9px;
+  left: 11px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  color: #171207;
+  background: #e4b743;
+  font-size: 10px;
+  font-weight: 700;
+}
+.gate-card small {
+  color: var(--ls-faint);
+  font-size: 11px;
+}
+.permission-gate .gate-primary {
+  width: 100%;
+  margin-top: 6px;
+  padding: 13px 20px;
+  border: 1px solid #f6d87899;
+  border-radius: 999px;
+  color: #171207;
+  background: linear-gradient(135deg, #f8dd85, #e4b743 50%, #c8941f);
+  font: 700 14px Manrope;
+  cursor: pointer;
+  box-shadow: 0 10px 30px #e4b74333;
+  transition:
+    transform 0.2s,
+    filter 0.2s;
+}
+.permission-gate .gate-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.permission-gate .gate-secondary {
+  width: 100%;
+  padding: 11px 20px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.permission-gate .gate-secondary:hover {
+  border-color: var(--ls-gold-line);
+  color: var(--ls-gold-text);
+}
+.gate-spinner {
+  width: 30px;
+  height: 30px;
+  border-width: 2.5px;
+}
+.gate-arrow {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: #171207;
+  background: #e4b743;
+  box-shadow: 0 0 0 8px #e4b7431f;
+  animation: nudge 1.2s ease-in-out infinite;
+}
+
+/* Over a call: let the other person's video show through */
+.permission-gate.over-call {
+  background: var(--ls-scrim);
+  backdrop-filter: blur(10px);
+}
+
+/* Session link row in the invite modal */
+.invite-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 20px 12px;
+  padding: 5px 5px 5px 13px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 12px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft);
+}
+.invite-link input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 0;
+  border: 0;
+  color: var(--ls-text);
+  background: transparent;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+.invite-link input:focus-visible {
+  outline: none;
+}
+.invite-overlay .invite-link button {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 9px;
+  color: #171207;
+  background: #e4b743;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 540px) {
+  .invite-link {
+    margin-inline: 16px;
+  }
+  .invite-link input {
+    font-size: 16px;
+  }
+}
+
+@keyframes nudge {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ── Invite modal ─────────────────────────────────────────────────────────
+   Rendered in a portal on <body>, so it covers the whole window and is
+   sized with media queries rather than the meeting container. */
+.invite-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: var(--ls-text);
+  font-family: "DM Sans", sans-serif;
+  background: var(--ls-backdrop);
+  backdrop-filter: blur(6px);
+}
+.invite-overlay.is-open {
+  animation: overlay-in 0.25s ease both;
+}
+.invite-overlay.is-closing {
+  animation: overlay-out 0.22s ease both;
+  pointer-events: none;
+}
+.invite-overlay button,
+.invite-overlay input {
+  font: inherit;
+  color: inherit;
+}
+.invite-overlay button:focus-visible,
+.invite-overlay input:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 3px;
+}
+.invite-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  max-height: min(640px, calc(100dvh - 32px));
+  overflow: hidden;
+  border: 1px solid var(--ls-line);
+  border-radius: 22px;
+  background: linear-gradient(var(--ls-panel), var(--ls-sunken));
+  box-shadow:
+    0 30px 90px #000c,
+    0 0 0 1px #e4b74314;
+}
+.is-open .invite-modal {
+  animation: modal-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.is-closing .invite-modal {
+  animation: modal-out 0.22s ease both;
+}
+.invite-modal > header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 20px 16px;
+}
+.invite-badge {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: #171207;
+  background: linear-gradient(135deg, #f8dd85, #e4b743 55%, #c8941f);
+  box-shadow: 0 8px 24px #e4b74333;
+}
+.invite-modal > header > div {
+  flex: 1;
+  min-width: 0;
+}
+.invite-modal h2 {
+  margin: 2px 0 5px;
+  font: 700 18px Manrope;
+}
+.invite-modal header p {
+  margin: 0;
+  color: var(--ls-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.invite-overlay .invite-x {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--ls-line);
+  border-radius: 10px;
+  color: var(--ls-muted);
+  background: var(--ls-panel);
+  cursor: pointer;
+}
+.invite-overlay .invite-x:hover {
+  color: var(--ls-text);
+  border-color: var(--ls-line-strong);
+}
+.invite-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 20px;
+  padding: 0 13px;
+  border: 1px solid var(--ls-line);
+  border-radius: 12px;
+  color: var(--ls-faint);
+  background: var(--ls-sunken);
+  transition: border-color 0.15s;
+}
+.invite-search:focus-within {
+  border-color: var(--ls-gold-line);
+}
+.invite-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+}
+.invite-search input:focus-visible {
+  outline: none;
+}
+.invite-search input::placeholder {
+  color: var(--ls-faint);
+}
+.invite-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+  color: var(--ls-muted);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.invite-count b {
+  padding: 5px 9px;
+  border-radius: 8px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  transition: 0.2s;
+}
+.invite-count b.full {
+  color: #171207;
+  background: #e4b743;
+}
+.invite-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 12px 12px;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+.invite-friend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    opacity 0.15s;
+}
+.invite-friend input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.invite-friend:hover {
+  background: var(--ls-hover);
+}
+.invite-friend:has(input:focus-visible) {
+  outline: 2px solid #e4b743;
+  outline-offset: -2px;
+}
+.invite-friend.checked {
+  border-color: var(--ls-gold-line);
+  background: var(--ls-gold-soft);
+}
+.invite-friend.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.invite-friend .avatar em {
+  border-color: var(--ls-panel);
+}
+.invite-friend > span:not(.invite-check):not(.avatar) {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+}
+.invite-friend strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.invite-friend small {
+  color: var(--ls-faint);
+  font-size: 11px;
+}
+.invite-check {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--ls-line-strong);
+  border-radius: 7px;
+  color: transparent;
+  transition: 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.invite-friend.checked .invite-check {
+  border-color: #e4b743;
+  color: #171207;
+  background: #e4b743;
+  transform: scale(1.06);
+}
+.invite-empty {
+  padding: 28px 10px;
+  color: var(--ls-faint);
+  font-size: 12px;
+  text-align: center;
+}
+.invite-modal > footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--ls-line-soft);
+}
+.invite-modal > footer button {
+  flex: 1;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.18s;
+}
+.invite-cancel {
+  border: 1px solid var(--ls-line-strong);
+  background: var(--ls-raised);
+}
+.invite-cancel:hover {
+  border-color: var(--ls-line-strong);
+}
+.invite-overlay .invite-send {
+  border: 1px solid #f6d87899;
+  color: #171207;
+  background: linear-gradient(135deg, #f8dd85, #e4b743 50%, #c8941f);
+  box-shadow: 0 8px 24px #e4b74333;
+}
+.invite-send:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.invite-send:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+/* Phones: modal becomes a bottom sheet. */
+@media (max-width: 540px) {
+  .invite-overlay {
+    place-items: end stretch;
+    padding: 0;
+  }
+  .invite-modal {
+    width: 100%;
+    max-height: 88dvh;
+    border-width: 1px 0 0;
+    border-radius: 22px 22px 0 0;
+  }
+  .is-open .invite-modal {
+    animation-name: sheet-in;
+  }
+  .is-closing .invite-modal {
+    animation-name: sheet-out;
+  }
+  .invite-modal > header {
+    padding: 18px 16px 14px;
+  }
+  .invite-search {
+    margin: 0 16px;
+  }
+  /* 16px stops iOS Safari zooming in on focus. */
+  .invite-search input {
+    font-size: 16px;
+  }
+  .invite-count {
+    padding-inline: 16px;
+  }
+  .invite-list {
+    padding-inline: 8px;
+  }
+  .invite-modal > footer {
+    padding-inline: 16px;
+  }
+}
+/* Short landscape phones: let the list use the height. */
+@media (max-height: 480px) {
+  .invite-modal {
+    max-height: calc(100dvh - 16px);
+  }
+  .invite-modal > header {
+    padding-block: 12px 10px;
+  }
+  .invite-modal header p,
+  .invite-badge {
+    display: none;
+  }
+  .invite-count {
+    padding-block: 10px 4px;
+  }
+  .invite-modal > footer {
+    padding-block: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .invite-overlay *,
+  .invite-overlay,
+  .invite-cta {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+}
+@keyframes modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes cta-glow {
+  50% {
+    box-shadow:
+      0 0 0 12px #e4b74300,
+      0 12px 40px #e4b74355,
+      inset 0 1px 0 #fff6;
+  }
+}
+@keyframes toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  10%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes side-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes peek {
+  from {
+    opacity: 0;
+    transform: translate(16px, -50%);
+  }
+  to {
+    transform: translate(0, -50%);
+  }
+}
+@keyframes tile {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@container meeting (max-width: 850px) {
+  .meeting {
+    grid-template-rows: 64px minmax(0, 1fr) 88px;
+  }
+  .stage,
+  .stage.open {
+    position: relative;
+    display: block;
+  }
+  .video-area {
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+  }
+  .side-wrap {
+    position: absolute;
+    inset: 0 0 0 auto;
+    z-index: 8;
+    width: min(330px, 90cqw);
+    pointer-events: none;
+  }
+  .side-wrap.shown {
+    pointer-events: auto;
+  }
+  .sidebar {
+    width: calc(100% - 12px);
+    height: calc(100% - 24px);
+    margin: 12px;
+    box-shadow: -30px 0 80px #000a;
+  }
+  .dock {
+    justify-content: flex-start;
+    gap: 4px;
+    padding-inline: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .dock::-webkit-scrollbar {
+    display: none;
+  }
+  .dock > div,
+  .dock .divider {
+    flex-shrink: 0;
+  }
+  /* Keep Leave reachable while the other controls scroll sideways. */
+  .leave {
+    position: sticky;
+    right: 0;
+    margin-left: auto;
+    box-shadow: -14px 0 14px var(--ls-dock-solid);
+  }
+  .control {
+    min-width: 53px;
+  }
+  /* Side panel floats over the video; tap outside it to close. */
+  .side-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: #0008;
+    cursor: pointer;
+    animation: fade-in 0.25s both;
+  }
+  .brand > span,
+  .status time {
+    display: none;
+  }
+}
+@container meeting (max-width: 540px) {
+  .peer-grid[data-count="2"] {
+    grid-template-columns: 1fr;
+  }
+  .peer-grid[data-count="5"],
+  .peer-grid[data-count="6"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .peer-grid {
+    gap: 6px;
+    padding: 6px;
+  }
+  .peer-tile {
+    border-radius: 10px;
+  }
+  .gate-card h2 {
+    font-size: 17px;
+  }
+  .gate-icons span,
+  .gate-arrow {
+    width: 44px;
+    height: 44px;
+  }
+  .meeting {
+    grid-template-rows: 58px minmax(0, 1fr) 78px;
+  }
+  .topbar {
+    grid-template-columns: auto 1fr auto;
+    padding: 0 12px;
+  }
+  .brand > b {
+    width: 31px;
+    height: 31px;
+  }
+  .title {
+    align-items: flex-start;
+    min-width: 0;
+    margin-left: 11px;
+  }
+  .title h1 {
+    max-width: 45cqw;
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .title span,
+  .status {
+    gap: 6px;
+  }
+  .video-area {
+    padding: 8px;
+  }
+  .video {
+    border-radius: 15px;
+  }
+  .invite-stage .invite-cta {
+    padding: 13px 22px;
+    font-size: 14px;
+  }
+  .invite-stage > span {
+    font-size: 11px;
+  }
+  .invite-toast {
+    bottom: 58px;
+    font-size: 11px;
+  }
+  /* Move the self-view to the top corner so it clears the toast and speaker tag. */
+  .self-view {
+    top: 10px;
+    right: 10px;
+    bottom: auto;
+    width: clamp(96px, 32cqw, 150px);
+    aspect-ratio: 3 / 4;
+    border-radius: 12px;
+  }
+  .speaker {
+    left: 10px;
+    bottom: 10px;
+    padding: 7px 9px;
+  }
+  .avatar.large {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 10px;
+  }
+  .dock {
+    padding: 5px 8px 7px;
+  }
+  .control {
+    min-width: 49px;
+    padding: 4px 3px;
+  }
+  .control small {
+    font-size: 8px;
+  }
+  .control-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+  .control-icon svg {
+    width: 18px;
+  }
+  .divider {
+    height: 33px;
+    margin: 0 1px;
+  }
+  .leave {
+    padding: 9px 13px;
+  }
+  .panel-peek {
+    right: 8px;
+    border-right: 1px solid var(--ls-line-strong);
+    border-radius: 11px;
+  }
+  .panel-peek span {
+    display: none;
+  }
+  .sharing {
+    max-width: 80%;
+    white-space: nowrap;
+  }
+}
+@container meeting (max-height: 540px) and (orientation: landscape) {
+  .meeting {
+    grid-template-rows: 50px minmax(0, 1fr) 66px;
+  }
+  .topbar {
+    padding-inline: 14px;
+  }
+  .brand > b {
+    width: 30px;
+    height: 30px;
+  }
+  .video-area {
+    padding: 7px;
+  }
+  .sidebar {
+    height: calc(100% - 14px);
+    margin: 7px;
+  }
+  .sidebar > header {
+    height: 59px;
+    padding-block: 10px;
+  }
+  .side-content {
+    height: calc(100% - 59px);
+    padding: 12px;
+  }
+  .control {
+    min-width: auto;
+    padding: 4px;
+  }
+  .control small {
+    display: none;
+  }
+  .control-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .title span {
+    display: none;
+  }
+}
+/* Very short spaces (phone landscape under the dashboard navbar). */
+@container meeting (max-height: 400px) {
+  .permission-gate {
+    place-items: start center;
+    padding: 12px;
+  }
+  .gate-card {
+    gap: 8px;
+  }
+  .gate-card p,
+  .gate-card small,
+  .gate-icons,
+  .gate-arrow {
+    display: none;
+  }
+  .gate-card h2 {
+    font-size: 15px;
+  }
+  .gate-card li {
+    padding-block: 6px;
+  }
+  .permission-gate .gate-primary,
+  .permission-gate .gate-secondary {
+    padding-block: 9px;
+  }
+  .meeting {
+    grid-template-rows: 44px minmax(0, 1fr) 54px;
+  }
+  .invite-stage {
+    gap: 8px;
+  }
+  .invite-stage > span {
+    display: none;
+  }
+  .invite-stage .invite-cta {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+  .topbar {
+    padding-inline: 10px;
+  }
+  .brand > b {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+  .dock {
+    padding-block: 4px;
+  }
+  .control small {
+    display: none;
+  }
+  .control-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .leave {
+    padding: 7px 12px;
+  }
+  .avatar.large {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  .sidebar > header {
+    height: 50px;
+  }
+  .side-content {
+    height: calc(100% - 50px);
+  }
+  .speaker small {
+    display: none;
+  }
+  .self-view {
+    top: 8px;
+    right: 8px;
+    bottom: auto;
+    width: clamp(90px, 20cqw, 150px);
+    aspect-ratio: 16 / 10;
+  }
+  .self-state span:not(.avatar) {
+    display: none;
+  }
+}
+/* Smallest phones (iPhone SE / 320px). */
+@container meeting (max-width: 360px) {
+  .rec {
+    font-size: 0;
+    gap: 0;
+  }
+  .control {
+    min-width: 44px;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meeting *,
+  .meeting *::before,
+  .meeting *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Leave confirmation ───────────────────────────────────────────────────── */
+.confirm-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(380px, 100%);
+  padding: 28px 22px 22px;
+  border: 1px solid var(--ls-line);
+  border-radius: 22px;
+  text-align: center;
+  background: linear-gradient(var(--ls-panel), var(--ls-sunken));
+  box-shadow:
+    0 30px 90px #000c,
+    0 0 0 1px #e4b74314;
+}
+.is-open .confirm-modal {
+  animation: modal-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.is-closing .confirm-modal {
+  animation: modal-out 0.22s ease both;
+}
+.confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  color: var(--ls-red-text);
+  background: var(--ls-red-soft);
+  box-shadow:
+    0 0 0 1px var(--ls-red-line),
+    0 0 0 8px #ff735c12;
+}
+.confirm-modal h2 {
+  margin: 0;
+  font: 700 19px Manrope;
+}
+.confirm-modal p {
+  margin: 0 0 10px;
+  color: var(--ls-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+.invite-overlay .confirm-actions button {
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.18s,
+    filter 0.18s,
+    border-color 0.18s;
+}
+.invite-overlay .confirm-no {
+  border: 1px solid var(--ls-line-strong);
+  background: var(--ls-raised);
+}
+.invite-overlay .confirm-no:hover {
+  border-color: var(--ls-gold-line);
+}
+.invite-overlay .confirm-yes {
+  border: 1px solid #a8412f;
+  color: #fff;
+  background: linear-gradient(135deg, #e5604a, #b8321f);
+  box-shadow: 0 8px 24px #e5604a33;
+}
+.invite-overlay .confirm-yes:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+/* Stays a centered card on phones (the invite modal becomes a sheet) */
+@media (max-width: 540px) {
+  .invite-overlay.confirm-overlay {
+    place-items: center;
+    padding: 16px;
+  }
+}
+
+/* After leaving: the gate card fills the session area */
+.meeting.left-screen {
+  position: relative;
+  display: block;
+}
+
+/* ── Theme details ───────────────────────────────────────────────────────── */
+
+/* Labels sitting on top of video keep their dark glass in both themes, so
+   their text stays light too. */
+.speaker,
+.self-tag,
+.peer-status {
+  color: #f7f5ee;
+}
+.speaker small {
+  color: #b5b1a8;
+}
+.speaker em,
+.self-tag em {
+  color: #ff9e89;
+}
+
+/* Light mode: softer shadows, and no dark vignette over a light stage */
+.dashboard.light .tint {
+  display: none;
+}
+.dashboard.light .video {
+  box-shadow: 0 12px 40px #0000001a;
+}
+.dashboard.light .sidebar {
+  box-shadow: -12px 0 40px #00000014;
+}
+.dashboard.light .dock {
+  box-shadow: 0 -8px 30px #0000000f;
+}
+.dashboard.light .self-view {
+  box-shadow: 0 10px 28px #00000026;
+}
+.dashboard.light .peer-tile {
+  border-color: var(--ls-line);
+}
+.invite-overlay.is-light {
+  backdrop-filter: blur(4px);
+}
+.invite-overlay.is-light .invite-modal,
+.invite-overlay.is-light .confirm-modal {
+  box-shadow:
+    0 24px 70px #0000002e,
+    0 0 0 1px #e4b7431f;
+}
+
+/* ── Invite-only sessions ─────────────────────────────────────────────────
+   Join-by-link field (invite modal + the invite-only / ended screens),
+   group headings in the invite list and its error line. */
+.join-link {
+  width: 100%;
+  margin: 0;
+}
+.join-link-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 5px 5px 13px;
+  border: 1px solid var(--ls-line);
+  border-radius: 12px;
+  color: var(--ls-muted);
+  background: var(--ls-sunken);
+  transition: border-color 0.15s;
+}
+.join-link-field:focus-within {
+  border-color: var(--ls-gold-line);
+}
+.join-link-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 0;
+  border: 0;
+  color: var(--ls-text);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+}
+.join-link-field input:focus-visible {
+  outline: none;
+}
+.join-link-field input::placeholder {
+  color: var(--ls-faint);
+}
+.meeting .join-link-field button,
+.invite-overlay .join-link-field button {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 9px;
+  color: #171207;
+  background: #e4b743;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.meeting .join-link-field button:disabled,
+.invite-overlay .join-link-field button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.join-link-error {
+  margin: 7px 2px 0;
+  color: var(--ls-red-text);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+}
+.gate-card .join-link {
+  margin-top: 4px;
+}
+
+.invite-join {
+  display: grid;
+  gap: 7px;
+  margin: 0 20px 14px;
+  padding: 12px;
+  border: 1px dashed var(--ls-line);
+  border-radius: 14px;
+}
+.invite-join > span {
+  color: var(--ls-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.invite-group {
+  padding: 12px 10px 6px;
+  color: var(--ls-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.invite-error {
+  margin: 0 20px 10px;
+  color: var(--ls-red-text);
+  font-size: 12px;
+}
+@media (max-width: 540px) {
+  .invite-join {
+    margin-inline: 16px;
+  }
+  .join-link-field input {
+    font-size: 16px; /* stops iOS zooming in on focus */
+  }
+}
+
+/* ── Reactions ──────────────────────────────────────────────────────────────
+   The React button opens .react-picker (bottom of the video, above the dock —
+   the dock itself scrolls sideways on phones, which would clip it). Picked
+   emoji rise up the video in .reaction-layer and fade out. Phones first:
+   5 × 2 big targets; one row of 10 once there's room. */
+.meeting .react-picker {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  z-index: 25;
+  display: grid;
+  grid-template-columns: repeat(5, 48px);
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--ls-line);
+  border-radius: 20px;
+  background: var(--ls-panel);
+  box-shadow: 0 18px 50px #0008;
+  transform: translateX(-50%);
+  animation: react-picker-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.meeting .react-picker button {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
+}
+.meeting .react-picker button:hover {
+  background: var(--ls-hover);
+  transform: translateY(-2px) scale(1.12);
+}
+.meeting .react-picker button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  background: var(--ls-hover);
+}
+.meeting .react-picker button:active {
+  transform: scale(0.9);
+}
+
+.meeting .reaction-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  overflow: hidden;
+  pointer-events: none;
+}
+.meeting .reaction-float {
+  position: absolute;
+  left: var(--x);
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transform: translateX(-50%);
+  animation: reaction-rise var(--dur, 3s) cubic-bezier(0.25, 0.6, 0.35, 1) forwards;
+  will-change: transform, opacity;
+}
+.meeting .reaction-emoji {
+  font-size: 34px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px #0007);
+}
+.meeting .reaction-float small {
+  max-width: 96px;
+  overflow: hidden;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: #fff;
+  background: #0c0c0cc4;
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes react-picker-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.96);
+  }
+}
+/* Up most of the meeting's height (cqh = % of the meeting container) */
+@keyframes reaction-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 16px) scale(0.5);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--drift) * 0.15), -4cqh) scale(1.15);
+  }
+  18% {
+    transform: translate(calc(-50% - var(--drift) * 0.1), -10cqh) scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--drift)), -68cqh) scale(0.9);
+  }
+}
+
+/* Room for one row of 10 */
+@container meeting (min-width: 640px) {
+  .meeting .react-picker {
+    grid-template-columns: repeat(10, 44px);
+    bottom: 26px;
+  }
+  .meeting .react-picker button {
+    width: 44px;
+    height: 44px;
+    font-size: 26px;
+  }
+  .meeting .reaction-emoji {
+    font-size: 42px;
+  }
+}
+/* Tiny phones */
+@container meeting (max-width: 300px) {
+  .meeting .react-picker {
+    grid-template-columns: repeat(5, 40px);
+    gap: 2px;
+    padding: 6px;
+  }
+  .meeting .react-picker button {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+}
+/* Landscape phones: little height, so one compact row */
+@container meeting (max-height: 420px) and (min-width: 480px) {
+  .meeting .react-picker {
+    grid-template-columns: repeat(10, 38px);
+    bottom: 10px;
+    padding: 5px;
+  }
+  .meeting .react-picker button {
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
+  }
+  .meeting .reaction-emoji {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meeting .react-picker {
+    animation: none;
+  }
+  /* No rising: fade in and out where it appears */
+  .meeting .reaction-float {
+    bottom: 22%;
+    animation: reaction-fade 1.8s ease forwards;
+  }
+}
+@keyframes reaction-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  75% {
+    opacity: 1;
+  }
+}
+
+/* People panel when no one else is in the video session */
+.meeting .people-empty {
+  margin: 4px 0 14px;
+  padding: 14px;
+  border: 1px dashed var(--ls-line);
+  border-radius: 12px;
+  color: var(--ls-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Session notes (Notes panel) ───────────────────────────────────────────
+   Host: input bar (attach / link / send) + their shared items with remove.
+   Everyone else: the same list, read-only. Phones first: 44px targets and
+   a 16px input (no iOS zoom); the sidebar is full-width on phones. */
+.meeting .session-notes {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100%;
+}
+.meeting .sn-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 14px;
+  background: var(--ls-raised);
+  transition: border-color 0.16s;
+}
+.meeting .sn-bar:focus-within {
+  border-color: var(--ls-gold-line);
+}
+.meeting .sn-bar input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 4px;
+  border: 0;
+  outline: 0;
+  color: var(--ls-text);
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+}
+.meeting .sn-bar input::placeholder {
+  color: var(--ls-muted);
+}
+.meeting .sn-attach,
+.meeting .sn-send {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 11px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: 0.16s;
+}
+.meeting .sn-attach {
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+}
+.meeting .sn-attach:hover {
+  color: var(--ls-gold-text);
+}
+.meeting .sn-send {
+  color: #171207;
+  background: var(--gold);
+}
+.meeting .sn-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.meeting .sn-attach:focus-visible,
+.meeting .sn-send:focus-visible,
+.meeting .sn-remove:focus-visible,
+.meeting .sn-download:focus-visible,
+.meeting .sn-main:focus-visible,
+.meeting .sn-thumb:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.meeting .sn-hint,
+.meeting .sn-empty {
+  margin: 0;
+  color: var(--ls-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.meeting .sn-empty {
+  padding: 14px;
+  border: 1px dashed var(--ls-line);
+  border-radius: 12px;
+}
+.meeting .sn-error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #f87171;
+  background: #ef44441a;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.meeting .sn-retry {
+  border: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.meeting .sn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.meeting .sn-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--ls-line);
+  border-radius: 12px;
+  background: var(--ls-raised);
+  transition: opacity 0.16s, border-color 0.16s;
+}
+.meeting .sn-item:hover {
+  border-color: var(--ls-line-strong);
+}
+.meeting .sn-item.is-busy {
+  opacity: 0.5;
+}
+.meeting .sn-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 40px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.meeting .sn-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .sn-icon.is-pdf {
+  color: #f87171;
+  background: #ef44441f;
+}
+.meeting .sn-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.meeting .sn-text strong,
+.meeting .sn-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meeting .sn-text strong {
+  color: var(--ls-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.meeting .sn-text small {
+  color: var(--ls-muted);
+  font-size: 10px;
+}
+.meeting a.sn-main:hover strong {
+  color: var(--ls-gold-text);
+  text-decoration: underline;
+}
+.meeting .sn-download,
+.meeting .sn-remove {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ls-text-2);
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: 0.16s;
+}
+.meeting .sn-download:hover {
+  color: var(--ls-gold-text);
+  background: var(--ls-hover);
+}
+.meeting .sn-remove:hover {
+  color: #f87171;
+  background: #ef44441a;
+}
+/* Images: thumbnail on top, name + actions underneath */
+.meeting .sn-image {
+  flex-direction: column;
+  align-items: stretch;
+}
+.meeting .sn-thumb {
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ls-panel);
+}
+.meeting .sn-thumb img {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.meeting .sn-thumb:hover img {
+  transform: scale(1.03);
+}
+.meeting .sn-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding-left: 4px;
+}
+.meeting .sn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: sn-spin 0.8s linear infinite;
+}
+.meeting .sn-drop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--gold);
+  border-radius: 14px;
+  color: var(--ls-gold-text);
+  background: var(--ls-panel);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+@keyframes sn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Bigger screens: a little tighter (mouse/trackpad) */
+@container meeting (min-width: 851px) {
+  .meeting .sn-bar input[type="text"] {
+    height: 36px;
+    font-size: 13px;
+  }
+  .meeting .sn-attach,
+  .meeting .sn-send {
+    width: 36px;
+    height: 36px;
+  }
+  .meeting .sn-download,
+  .meeting .sn-remove {
+    width: 32px;
+    height: 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meeting .sn-spinner {
+    animation-duration: 2.4s;
+  }
+  .meeting .sn-thumb img {
+    transition: none;
+  }
+}
+
+/* ── Session chat (Chat panel) ─────────────────────────────────────────────
+   Message list (scrolls) · typing line · composer pinned at the bottom.
+   Phones first: 16px input (no iOS zoom), 36px+ targets, actions show on
+   tap; with a mouse they show on hover. */
+.meeting .session-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+/* The chat scrolls its own list and pins the composer, so the panel
+   itself doesn't pad or scroll */
+.meeting .side-content:has(> .session-chat) {
+  padding: 0;
+  overflow: hidden;
+}
+.meeting .sc-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding: 16px 14px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.meeting .sc-note,
+.meeting .sc-empty {
+  margin: auto 0;
+  color: var(--ls-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+.meeting .sc-error {
+  margin: 4px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #f87171;
+  background: #ef44441a;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.meeting .sc-link-button {
+  border: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.meeting .sc-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 10px;
+  border-radius: 12px;
+  transition: background 0.4s;
+}
+.meeting .sc-msg.is-grouped {
+  margin-top: 2px;
+}
+.meeting .sc-msg.is-mine {
+  align-items: flex-end;
+}
+.meeting .sc-msg.is-flash {
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .sc-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.meeting .sc-head b {
+  color: var(--ls-text);
+  font-weight: 700;
+}
+.meeting .sc-head time {
+  color: var(--ls-muted);
+  font-size: 10px;
+}
+/* Full width so the bubble's max-width has something to measure against
+   (otherwise it collapses to one letter per line) */
+.meeting .sc-bubble-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.meeting .sc-msg.is-mine .sc-bubble-row {
+  flex-direction: row-reverse;
+}
+.meeting .sc-bubble {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(260px, 82%);
+  padding: 8px 11px;
+  border: 1px solid var(--ls-line);
+  border-radius: 4px 14px 14px 14px;
+  background: var(--ls-raised);
+  cursor: pointer;
+  outline: none;
+}
+.meeting .sc-msg.is-mine .sc-bubble {
+  border-color: var(--ls-gold-line);
+  border-radius: 14px 4px 14px 14px;
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .sc-bubble:focus-visible {
+  box-shadow: 0 0 0 2px var(--gold);
+}
+.meeting .sc-bubble p {
+  margin: 0;
+  color: var(--ls-text);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  /* Break only words too long for the bubble (e.g. long links) */
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.meeting .sc-bubble a {
+  color: var(--ls-gold-text);
+  text-decoration: underline;
+}
+.meeting .sc-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 5px 8px;
+  border: 0;
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  color: var(--ls-muted);
+  background: var(--ls-panel);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.meeting .sc-quote b {
+  color: var(--ls-text-2);
+}
+.meeting .sc-quote span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+/* React / Reply: shown on tap (touch) or hover/focus (mouse, keyboard) */
+.meeting .sc-actions {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  background: var(--ls-panel);
+  box-shadow: 0 6px 20px #0005;
+}
+.meeting .sc-msg.is-active .sc-actions,
+.meeting .sc-msg:focus-within .sc-actions {
+  display: flex;
+}
+@media (hover: hover) {
+  .meeting .sc-msg:hover .sc-actions {
+    display: flex;
+  }
+}
+.meeting .sc-actions button {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s, background 0.12s;
+}
+.meeting .sc-actions button:hover,
+.meeting .sc-actions button:focus-visible {
+  outline: none;
+  background: var(--ls-hover);
+  transform: scale(1.12);
+}
+.meeting .sc-actions button[aria-pressed="true"] {
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .sc-actions .sc-reply {
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+/* Narrow panels: the actions go under the bubble instead of beside it */
+@container meeting (max-width: 540px) {
+  .meeting .sc-bubble-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .meeting .sc-msg.is-mine .sc-bubble-row {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .meeting .sc-bubble {
+    max-width: 88%;
+  }
+  .meeting .sc-actions button {
+    min-width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+}
+.meeting .sc-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.meeting .sc-reactions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: var(--ls-raised);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.meeting .sc-reactions button.is-mine {
+  border-color: var(--ls-gold-line);
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .sc-reactions span {
+  font-size: 13px;
+}
+/* "Maya is typing" + three bouncing dots */
+.meeting .sc-typing {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  padding: 0 16px;
+  color: var(--ls-muted);
+  font-size: 11px;
+}
+.meeting .sc-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: var(--ls-raised);
+}
+.meeting .sc-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: sc-dot 1.2s ease-in-out infinite;
+}
+.meeting .sc-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.meeting .sc-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes sc-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+.meeting .sc-composer {
+  flex-shrink: 0;
+  padding: 6px 12px max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--ls-line-soft);
+}
+.meeting .sc-replying {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 6px 6px 6px 10px;
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  background: var(--ls-raised);
+  font-size: 11px;
+}
+.meeting .sc-replying > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--ls-muted);
+}
+.meeting .sc-replying b {
+  color: var(--ls-text);
+}
+.meeting .sc-replying small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meeting .sc-replying button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ls-muted);
+  background: transparent;
+  cursor: pointer;
+}
+.meeting .sc-replying button:hover {
+  color: var(--ls-text);
+  background: var(--ls-hover);
+}
+.meeting .sc-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 5px 5px 5px 12px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 14px;
+  background: var(--ls-raised);
+}
+.meeting .sc-input:focus-within {
+  border-color: var(--ls-gold-line);
+}
+.meeting .sc-input textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 120px;
+  padding: 9px 0;
+  border: 0;
+  outline: 0;
+  resize: none;
+  color: var(--ls-text);
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.meeting .sc-input textarea::placeholder {
+  color: var(--ls-muted);
+}
+.meeting .sc-count {
+  align-self: center;
+  color: var(--ls-muted);
+  font-size: 10px;
+}
+.meeting .sc-input button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 11px;
+  color: #171207;
+  background: var(--gold);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.meeting .sc-input button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.meeting .sc-input button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+@container meeting (min-width: 851px) {
+  .meeting .sc-input textarea {
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .meeting .sc-input button {
+    width: 36px;
+    height: 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meeting .sc-dots i {
+    animation: none;
+    opacity: 0.8;
+  }
+  .meeting .sc-msg {
+    transition: none;
+  }
+}
+
+/* ── Screen sharing ─────────────────────────────────────────────────────────
+   The presenter's tile shows their whole screen (contain, not crop) and
+   takes the top of the stage; everyone else sits in a strip underneath. */
+.meeting .peer-grid[data-count][data-layout="spotlight"] {
+  grid-template-columns: repeat(var(--others, 1), minmax(0, 1fr));
+  grid-template-rows: minmax(0, 3fr) minmax(0, 1fr);
+}
+.meeting .peer-grid[data-layout="spotlight"] .peer-tile.is-presenting {
+  grid-column: 1 / -1;
+}
+.meeting .peer-tile.is-presenting {
+  border-color: var(--ls-gold-line);
+  background: #000;
+}
+.meeting .peer-tile.is-presenting > video {
+  object-fit: contain;
+}
+.meeting .presenting-badge {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #171207;
+  background: var(--gold);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.meeting .sharing {
+  z-index: 7;
+  max-width: calc(100% - 24px);
+  white-space: nowrap;
+}
+.meeting .sharing button {
+  margin-left: 4px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  color: #171207;
+  background: var(--gold);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+/* People panel: the host's per-person "Allow share" switch */
+.meeting .person > span:not(.avatar) {
+  min-width: 0;
+}
+.meeting .person strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meeting .person-share {
+  flex-shrink: 0;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: var(--ls-raised);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: 0.16s;
+}
+.meeting .person-share:hover {
+  border-color: var(--ls-gold-line);
+  color: var(--ls-gold-text);
+}
+.meeting .person-share.is-on {
+  border-color: var(--ls-gold-line);
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .person-share:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+@container meeting (max-width: 540px) {
+  .meeting .person-share {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+  .meeting .peer-grid[data-count][data-layout="spotlight"] {
+    grid-template-rows: minmax(0, 4fr) minmax(0, 1fr);
+  }
+}
+
+/* ── Gallery (cards for everyone in the session) ────────────────────────────
+   Covers the video area; the videos stay mounted underneath so audio keeps
+   playing. Phones first: 2-column grid, icon-only layout switcher. */
+.meeting .gallery {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  background: var(--ls-panel);
+  animation: fade-in 0.2s both;
+}
+.meeting .gallery-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--ls-line-soft);
+}
+.meeting .gallery-title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.meeting .gallery-title strong {
+  font-size: 14px;
+}
+.meeting .gallery-title small {
+  color: var(--ls-muted);
+  font-size: 11px;
+}
+.meeting .gallery-views {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ls-line);
+  border-radius: 12px;
+  background: var(--ls-sunken);
+}
+.meeting .gallery-views button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 38px;
+  height: 34px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--ls-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.meeting .gallery-views button span {
+  display: none;
+}
+.meeting .gallery-views button:hover {
+  color: var(--ls-text);
+}
+.meeting .gallery-views button.is-on {
+  color: #171207;
+  background: var(--gold);
+}
+.meeting .gallery-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ls-line);
+  border-radius: 10px;
+  color: var(--ls-text-2);
+  background: var(--ls-raised);
+  cursor: pointer;
+}
+.meeting .gallery-views button:focus-visible,
+.meeting .gallery-close:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.meeting .gallery-cards {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 10px;
+  min-height: 0;
+  margin: 0;
+  padding: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+.meeting .gallery-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 12px 12px;
+  border: 1px solid var(--ls-line);
+  border-radius: 16px;
+  background: var(--ls-raised);
+  text-align: center;
+  animation: tile 0.3s both;
+}
+.meeting .gallery-card.is-presenting {
+  border-color: var(--ls-gold-line);
+  box-shadow: 0 0 0 1px var(--ls-gold-line);
+}
+.meeting .gallery-photo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 20px;
+  color: #111;
+  font-size: 22px;
+  font-weight: 800;
+}
+.meeting .gallery-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
+.meeting .gallery-info strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ls-text);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meeting .gallery-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.meeting .gallery-tags em {
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+.meeting .gallery-tags em.is-host {
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft-glass);
+}
+.meeting .gallery-tags em.is-presenting {
+  color: #171207;
+  background: var(--gold);
+}
+.meeting .gallery-state {
+  display: flex;
+  gap: 6px;
+}
+.meeting .gallery-state i {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+}
+.meeting .gallery-state i.is-off {
+  color: var(--ls-red-text);
+}
+
+/* Grid: big cards */
+.meeting .gallery-cards.is-grid {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+/* List: one row per person */
+.meeting .gallery-cards.is-list {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.meeting .gallery-cards.is-list .gallery-card {
+  flex-direction: row;
+  padding: 10px 12px;
+  text-align: left;
+}
+.meeting .gallery-cards.is-list .gallery-photo {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  font-size: 14px;
+}
+.meeting .gallery-cards.is-list .gallery-info {
+  flex: 1;
+  align-items: flex-start;
+}
+.meeting .gallery-cards.is-list .gallery-tags {
+  justify-content: flex-start;
+}
+/* Compact: small cards, photo + name only */
+.meeting .gallery-cards.is-compact {
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+}
+.meeting .gallery-cards.is-compact .gallery-card {
+  gap: 7px;
+  padding: 10px 6px;
+  border-radius: 14px;
+}
+.meeting .gallery-cards.is-compact .gallery-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 15px;
+}
+.meeting .gallery-cards.is-compact .gallery-info strong {
+  font-size: 11px;
+}
+.meeting .gallery-cards.is-compact .gallery-tags em:not(.is-host):not(.is-presenting),
+.meeting .gallery-cards.is-compact .gallery-state {
+  display: none;
+}
+
+/* Room for labels and bigger cards */
+@container meeting (min-width: 600px) {
+  .meeting .gallery-head {
+    padding: 14px 18px;
+  }
+  .meeting .gallery-views button span {
+    display: inline;
+  }
+  .meeting .gallery-cards {
+    gap: 14px;
+    padding: 18px;
+  }
+  .meeting .gallery-cards.is-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  .meeting .gallery-cards.is-grid .gallery-photo {
+    width: 96px;
+    height: 96px;
+    border-radius: 26px;
+    font-size: 28px;
+  }
+}
+@container meeting (max-width: 300px) {
+  .meeting .gallery-cards.is-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .meeting .gallery-photo {
+    width: 56px;
+    height: 56px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meeting .gallery,
+  .meeting .gallery-card {
+    animation: none;
+  }
+}
+
+/* Gallery card media: live camera, or photo/initials when it's off.
+   Grid: a 4:3 frame (video fills it, the photo sits in the middle).
+   List / Compact: a small square. */
+.meeting .gallery-media {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 45%, #e4b74318, transparent 60%), var(--ls-panel);
+}
+.meeting .gallery-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+.meeting .gallery-video.is-mirrored {
+  transform: scaleX(-1);
+}
+.meeting .gallery-cards.is-list .gallery-media {
+  width: 44px;
+  height: 44px;
+  aspect-ratio: auto;
+  border-radius: 13px;
+}
+.meeting .gallery-cards.is-compact .gallery-media {
+  width: 48px;
+  height: 48px;
+  aspect-ratio: auto;
+  border-radius: 14px;
+}
+/* In the small frames the photo fills the square */
+.meeting .gallery-cards.is-list .gallery-media .gallery-photo,
+.meeting .gallery-cards.is-compact .gallery-media .gallery-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+/* Wider compact cards when cameras are on, so faces aren't tiny */
+.meeting .gallery-cards.is-compact .gallery-media.has-video {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+/* ── Settings panel ─────────────────────────────────────────────────────────
+   Switches (the .settings input rules above) + device pickers. Phones
+   first: 16px selects (no iOS zoom), 44px rows; tighter with a mouse. */
+.meeting .settings-group {
+  margin: 18px 3px 2px;
+  color: var(--ls-gold-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.meeting .settings-group:first-child {
+  margin-top: 0;
+}
+.meeting .settings > label {
+  gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.meeting .settings > label > span {
+  min-width: 0;
+}
+.meeting .settings > label b {
+  font-size: 12px;
+}
+.meeting .settings > label small {
+  font-size: 10px;
+  line-height: 1.4;
+}
+.meeting .settings > label.is-disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.meeting .settings input[type="checkbox"] {
+  flex-shrink: 0;
+}
+.meeting .settings input:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.meeting .settings input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.meeting .device {
+  display: grid;
+  gap: 6px;
+  padding: 12px 3px;
+  border-bottom: 1px solid var(--ls-line-soft);
+}
+.meeting .device > label {
+  font-size: 12px;
+  font-weight: 700;
+}
+.meeting .device select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 10px;
+  color: var(--ls-text);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23918e87' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      no-repeat right 12px center,
+    var(--ls-sunken);
+  font: inherit;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  appearance: none;
+  cursor: pointer;
+}
+.meeting .device select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.meeting .device select:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+.meeting .device-empty,
+.meeting .settings-note {
+  margin: 0;
+  color: var(--ls-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.meeting .settings-note {
+  padding: 10px 3px 0;
+}
+.meeting .settings-error {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #f87171;
+  background: #ef44441a;
+  font-size: 11px;
+}
+@container meeting (min-width: 851px) {
+  .meeting .device select {
+    min-height: 36px;
+    font-size: 12px;
+  }
+  .meeting .settings > label {
+    min-height: 0;
+  }
+}
+
+/* Chat composer: the message can't be sent as typed */
+.meeting .sc-input.is-invalid,
+.meeting .sc-input.is-invalid:focus-within {
+  border-color: #f87171;
+}
+
+/* Dock buttons that need an active session (someone else in the call) */
+.meeting .control:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+.meeting .control:disabled:hover {
+  color: var(--ls-muted);
+  background: transparent;
+}
+.meeting .control:disabled .control-icon {
+  box-shadow: none;
+}
+
+/* ── Rate your session (ended screen — components/SessionRating.jsx) ──────
+   Fluid from 320px phones up; the stars stay ≥44px touch targets. Uses only
+   flex/grid + custom properties (no :has / container queries), so it looks
+   the same in Chrome, Edge, Firefox and Safari (iOS too). */
+.gate-card.has-rating {
+  /* Taller than the window: scroll from the top instead of losing it (a
+     centred grid item taller than its container gets its top clipped) */
+  align-self: start;
+  margin-block: auto;
+  width: min(440px, 100%);
+  padding-block: 8px;
+}
+.rate-panel {
+  width: 100%;
+  margin: 6px 0 4px;
+  padding: 16px;
+  border: 1px solid var(--ls-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #e4b74314, transparent 60%), var(--ls-panel);
+  box-shadow: 0 18px 50px #0000002e;
+  text-align: left;
+  animation: modal-in 0.4s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rate-panel-head {
+  margin-bottom: 12px;
+  text-align: center;
+}
+.rate-panel-head h3 {
+  margin: 0;
+  color: var(--ls-text);
+  font: 700 16px Manrope;
+}
+.gate-card .rate-panel-head p {
+  margin-top: 3px;
+  font-size: 12px;
+}
+.rate-people {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* .gate-card scoped: beats the card's own numbered-steps li style */
+.gate-card .rate-person {
+  padding: 14px;
+  color: inherit;
+  font-size: inherit;
+  border: 1px solid var(--ls-line-soft);
+  border-radius: 16px;
+  background: var(--ls-raised);
+  transition: border-color 0.2s;
+}
+.gate-card .rate-person:focus-within {
+  border-color: var(--ls-gold-line);
+}
+.gate-card .rate-person.is-done {
+  border-color: var(--ls-gold-line);
+  background: var(--ls-gold-soft);
+}
+.rate-person-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.rate-avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 50%;
+  color: #111;
+  font-size: 13px;
+  font-weight: 700;
+}
+.rate-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rate-person-name {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.rate-person-name strong {
+  overflow: hidden;
+  color: var(--ls-text);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rate-person-name span {
+  color: var(--ls-muted);
+  font-size: 12px;
+}
+.rate-chip {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 999px;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Stars */
+.rate-stars-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+.rate-stars {
+  display: flex;
+  justify-content: center;
+  gap: clamp(2px, 1.5vw, 8px);
+}
+.rate-star {
+  display: grid;
+  place-items: center;
+  width: clamp(44px, 12vw, 50px);
+  height: clamp(44px, 12vw, 50px);
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  color: var(--ls-track);
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    color 0.15s,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.rate-star svg {
+  width: 72%;
+  height: 72%;
+}
+.rate-star.is-on {
+  color: #e4b743;
+}
+.rate-star.is-on svg {
+  filter: drop-shadow(0 4px 10px #e4b74359);
+}
+.rate-star.is-preview {
+  color: #f6d878;
+}
+.rate-star[aria-checked="true"] {
+  animation: rate-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .rate-star:hover:not(:disabled) {
+    transform: scale(1.15);
+  }
+}
+.rate-star:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.rate-star:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 1px;
+}
+.rate-star:disabled {
+  cursor: default;
+}
+.rate-label {
+  min-height: 16px;
+  color: var(--ls-faint);
+  font-size: 12px;
+  font-weight: 600;
+}
+.rate-label.is-set {
+  color: var(--ls-gold-text);
+}
+@keyframes rate-pop {
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+/* Compliments + comment slide open once there are stars. A 0fr to 1fr grid
+   row animates to the content's real height; older browsers just snap. */
+.rate-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.25s ease,
+    visibility 0s 0.3s;
+}
+.rate-more.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.25s 0.05s ease;
+}
+.rate-more-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.gate-card .rate-more-title {
+  margin: 12px 0 8px;
+  color: var(--ls-text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+.rate-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Undo the numbered-steps list style .gate-card gives every li */
+.gate-card .rate-people > li,
+.gate-card .rate-tags li {
+  counter-increment: none;
+}
+.gate-card .rate-tags li {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.gate-card .rate-people > li::before,
+.gate-card .rate-tags li::before {
+  content: none;
+}
+.rate-tags.is-static {
+  margin-top: 10px;
+}
+.rate-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  color: var(--ls-text-2);
+  background: var(--ls-panel);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+span.rate-tag {
+  cursor: default;
+}
+@media (hover: hover) and (pointer: fine) {
+  button.rate-tag:hover:not(:disabled) {
+    border-color: var(--ls-gold-line);
+    color: var(--ls-gold-text);
+  }
+}
+.rate-tag.is-on {
+  border-color: #e4b743;
+  color: var(--ls-gold-text);
+  background: var(--ls-gold-soft);
+}
+.rate-tag:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 2px;
+}
+.rate-comment {
+  position: relative;
+  display: block;
+  margin-top: 10px;
+}
+.rate-comment textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 64px;
+  max-height: 160px;
+  padding: 10px 12px 22px;
+  border: 1px solid var(--ls-line);
+  border-radius: 12px;
+  color: var(--ls-text);
+  background: var(--ls-sunken);
+  /* 16px stops iOS Safari zooming in on focus */
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  resize: vertical;
+  -webkit-appearance: none;
+  appearance: none;
+}
+@media (min-width: 541px) {
+  .rate-comment textarea {
+    font-size: 13px;
+  }
+}
+.rate-comment textarea::placeholder {
+  color: var(--ls-faint);
+}
+.rate-comment textarea:focus {
+  border-color: var(--ls-gold-line);
+  outline: none;
+  box-shadow: 0 0 0 3px #e4b7431f;
+}
+.rate-count {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  color: var(--ls-faint);
+  font-size: 10px;
+  pointer-events: none;
+}
+.rate-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.rate-submit,
+.rate-cancel {
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font: 700 13px Manrope;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.2s,
+    filter 0.2s,
+    opacity 0.2s;
+}
+.rate-submit {
+  flex: 1;
+  border: 1px solid #f6d87899;
+  color: #171207;
+  background: linear-gradient(135deg, #f8dd85, #e4b743 50%, #c8941f);
+  box-shadow: 0 8px 24px #e4b74333;
+}
+.rate-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.rate-submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: none;
+}
+.rate-cancel {
+  border: 1px solid var(--ls-line-strong);
+  color: var(--ls-text-2);
+  background: transparent;
+}
+.rate-submit:focus-visible,
+.rate-cancel:focus-visible,
+.rate-edit:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 2px;
+}
+
+/* Saved */
+.rate-done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 12px;
+}
+.rate-done-stars {
+  display: inline-flex;
+  gap: 2px;
+}
+.rate-done-stars span {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  color: var(--ls-track);
+}
+.rate-done-stars span.is-on {
+  color: #e4b743;
+}
+.rate-done-stars svg {
+  width: 100%;
+  height: 100%;
+}
+.rate-done-text {
+  flex: 1 1 160px;
+  min-width: 0;
+  color: var(--ls-text-2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.rate-edit {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--ls-gold-line);
+  border-radius: 999px;
+  color: var(--ls-gold-text);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+@media (max-width: 540px) {
+  .rate-panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .gate-card .rate-person {
+    padding: 12px;
+  }
+  .rate-actions {
+    flex-direction: column-reverse;
+  }
+}
+@media (max-width: 340px) {
+  .rate-chip {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rate-panel,
+  .rate-star,
+  .rate-star[aria-checked="true"],
+  .rate-more,
+  .rate-more.is-open {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ── Enlarge a video (EnlargeButton / EnlargedView in LiveSession.jsx) ────
+   The corner button shows on hover/focus with a mouse, and always (a little
+   faded) on touch screens, where there's no hover. */
+.enlarge-btn {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #ffffff26;
+  border-radius: 10px;
+  color: #fff;
+  background: #090909b3;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  opacity: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.18s,
+    transform 0.18s,
+    background 0.18s,
+    border-color 0.18s;
+}
+.enlarge-btn.is-small {
+  top: 6px;
+  right: 6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+.peer-tile:hover > .enlarge-btn,
+.self-view:hover > .enlarge-btn,
+.enlarge-btn:focus-visible {
+  opacity: 1;
+}
+.enlarge-btn:hover {
+  border-color: #e4b743;
+  color: #f6d878;
+  transform: scale(1.06);
+}
+.enlarge-btn:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 2px;
+}
+@media (hover: none) {
+  .enlarge-btn {
+    opacity: 0.85;
+  }
+}
+
+/* The enlarged video: fills the browser window over everything. Always dark
+   (it's a video), so it uses fixed colours, not the theme tokens. */
+.enlarged-view {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  color: #f7f5ee;
+  background: #000;
+  animation: enlarged-in 0.22s ease-out both;
+}
+.enlarged-view > video {
+  width: 100%;
+  height: 100%;
+  /* The whole picture, letterboxed — nothing cropped */
+  object-fit: contain;
+  background: #000;
+}
+.enlarged-view > video.is-mirrored {
+  transform: scaleX(-1);
+}
+.enlarged-off {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: #c8c4bb;
+  font-size: 14px;
+}
+.enlarged-avatar {
+  display: grid;
+  place-items: center;
+  width: clamp(96px, 22vmin, 180px);
+  height: clamp(96px, 22vmin, 180px);
+  overflow: hidden;
+  border-radius: 50%;
+  color: #111;
+  font-size: clamp(28px, 7vmin, 56px);
+  font-weight: 700;
+  box-shadow: 0 20px 60px #0009;
+}
+.enlarged-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.enlarged-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* Clear the notch / rounded corners on phones */
+  padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 28px
+    max(16px, env(safe-area-inset-left));
+  background: linear-gradient(#000000b3, transparent);
+}
+.enlarged-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.enlarged-who strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px #000a;
+}
+.enlarged-who em {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  background: #d9483b;
+}
+.enlarged-exit {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid #ffffff33;
+  border-radius: 999px;
+  color: #fff;
+  background: #121212cc;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+.enlarged-exit:hover {
+  border-color: #e4b743;
+  color: #f6d878;
+}
+.enlarged-exit:focus-visible {
+  outline: 2px solid #e4b743;
+  outline-offset: 2px;
+}
+.enlarged-hint {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #ffffffb3;
+  background: #0009;
+  font-size: 11px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: enlarged-hint 3.5s ease forwards;
+}
+@keyframes enlarged-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+@keyframes enlarged-hint {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (max-width: 540px) {
+  /* Icon-only Exit on phones; the label stays for screen readers */
+  .enlarged-exit {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+  .enlarged-exit span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+@media (hover: none) {
+  /* No Esc key or double-click on touch screens — just the button */
+  .enlarged-hint {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enlarged-view,
+  .enlarge-btn {
+    animation: none;
+    transition: none;
+  }
+}

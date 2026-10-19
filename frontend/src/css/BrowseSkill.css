@@ -1,0 +1,29 @@
+/* Browse Skills tab — rendered inside the Dashboard's main area.
+   Tailwind and the Manrope font are loaded once in index.css; rules here
+   are scoped under .browse-skills so nothing leaks into other pages. */
+
+.browse-skills {
+  font-family: "Manrope", sans-serif;
+}
+
+.browse-skills button,
+.browse-skills a,
+.browse-skills input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Row animation (the profile card's fade/pop live in ProfileCard.css) */
+.bs-row {
+  animation: bs-row 0.3s ease both;
+}
+@keyframes bs-row {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-row {
+    animation-duration: 0.01ms;
+  }
+}
