@@ -1,5 +1,13 @@
 require("dotenv").config();
 
+// Stop with a clear message instead of crashing later on an undefined value
+// (on Railway these come from the service's Variables tab, not .env)
+const missing = ["MONGODB", "MYACCESSKEY", "MYREFRESHKEY"].filter((name) => !process.env[name]);
+if (missing.length) {
+  console.error(`Missing environment variable(s): ${missing.join(", ")}`);
+  process.exit(1);
+}
+
 const http = require("http");
 const express = require("express");
 const helmet = require("helmet");

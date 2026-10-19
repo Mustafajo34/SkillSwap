@@ -2,8 +2,9 @@
 # In the Railway service's Settings: Root Directory = /backend and
 # Config File Path = /backend/railway.toml (Railway doesn't look for it
 # inside the root directory on its own).
-# Secrets (MONGODB, MYACCESSKEY, MYREFRESHKEY, CLIENT_ORIGIN, TURN_*) go in
-# the service's Variables tab — never in this file. Railway sets PORT itself.
+# Settings (NODE_ENV=production, MONGODB, MYACCESSKEY, MYREFRESHKEY,
+# CLIENT_ORIGIN, COOKIE_SAMESITE, TURN_*) go in the service's Variables tab —
+# this file can't set them. Railway sets PORT itself.
 
 [build]
 builder = "NIXPACKS"
@@ -22,6 +23,3 @@ restartPolicyMaxRetries = 10
 # One instance: live video rooms are kept in this server's memory, so a
 # second copy would split people in the same session apart
 numReplicas = 1
-
-[deploy.variables]
-NODE_ENV = "production"
